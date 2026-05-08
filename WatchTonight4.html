@@ -244,50 +244,68 @@ function tmdbScore(v) {
   return isNaN(n) ? "" : Math.round(n * 10) + "%";
 }
 
-async function tmdbFetch(path, params={}) {
-  const url = new URL(TMDB + path);
+async function tmdbFetch(path, params) {
+  if (params === undefined) params = {};
+  var url = new URL(TMDB + path);
   url.searchParams.set("api_key", TMDB_KEY);
   url.searchParams.set("language", "zh-TW");
   url.searchParams.set("region", "TW");
-  for (const [k,v] of Object.entries(params)) url.searchParams.set(k, v);
-  const r = await fetch(url.toString());
+  var keys = Object.keys(params);
+  for (var i = 0; i < keys.length; i++) {
+    url.searchParams.set(keys[i], params[keys[i]]);
+  }
+  var r = await fetch(url.toString());
   if (!r.ok) throw new Error("TMDB " + r.status);
   return r.json();
 }
 
-async function fetchPages(path, params, maxPages=3) {
-  const first = await tmdbFetch(path, {...params, page:1});
-  const total = Math.min(first.total_pages, maxPages);
-  const rest = await Promise.all(
-    Array.from({length:total-1},(_,i)=>tmdbFetch(path,{...params,page:i+2}))
-  );
-  return [first,...rest].flatMap(r=>r.results);
+async function fetchPages(path, params, maxPages) {
+  if (maxPages === undefined) maxPages = 3;
+  var p = Object.assign({}, params, {page: 1});
+  var first = await tmdbFetch(path, p);
+  var total = Math.min(first.total_pages, maxPages);
+  var promises = [];
+  for (var i = 2; i <= total; i++) {
+    promises.push(tmdbFetch(path, Object.assign({}, params, {page: i})));
+  }
+  var rest = await Promise.all(promises);
+  var all = [first].concat(rest);
+  return all.reduce(function(acc, r){ return acc.concat(r.results); }, []);
 }
 
 async function getDetail(id) {
   try {
-    const d = await tmdbFetch(`/movie/${id}`, {append_to_response:"videos,credits,watch/providers"});
-    const trailer = (d.videos?.results||[]).find(v=>v.type==="Trailer"&&v.site==="YouTube") ||
-                    (d.videos?.results||[])[0];
-    const providers = d["watch/providers"]?.results?.TW;
-    const platforms = [...new Set([
-      ...(providers?.flatrate||[]),
-      ...(providers?.rent||[]),
-      ...(providers?.buy||[])
-    ])].map(p=>({name:p.provider_name,logo:p.logo_path}));
+    var d = await tmdbFetch("/movie/" + id, {append_to_response:"videos,credits,watch/providers"});
+    var videos = (d.videos && d.videos.results) ? d.videos.results : [];
+    var trailer = videos.find(function(v){ return v.type==="Trailer" && v.site==="YouTube"; }) || videos[0];
+    var tw = d["watch/providers"] && d["watch/providers"].results && d["watch/providers"].results.TW;
+    var flat = (tw && tw.flatrate) ? tw.flatrate : [];
+    var rent = (tw && tw.rent) ? tw.rent : [];
+    var buy = (tw && tw.buy) ? tw.buy : [];
+    var allP = flat.concat(rent).concat(buy);
+    var seen = {};
+    var platforms = [];
+    allP.forEach(function(p){
+      if (!seen[p.provider_name]) { seen[p.provider_name] = true; platforms.push({name:p.provider_name, logo:p.logo_path}); }
+    });
+    var cast = (d.credits && d.credits.cast) ? d.credits.cast.slice(0,8).map(function(c){
+      return {name:c.name, char:c.character, photo: c.profile_path ? IMG_W+c.profile_path : null};
+    }) : [];
+    var crew = (d.credits && d.credits.crew) ? d.credits.crew.filter(function(c){
+      return c.job==="Director" || c.job==="Screenplay" || c.job==="Writer";
+    }).slice(0,3) : [];
     return {
-      duration: d.runtime||"",
-      genres: (d.genres||[]).map(g=>toTrad(g.name)),
-      synopsis: d.overview||"",
+      duration: d.runtime || "",
+      genres: (d.genres||[]).map(function(g){ return toTrad(g.name); }),
+      synopsis: d.overview || "",
       poster: d.poster_path ? IMG_W+d.poster_path : null,
       backdrop: d.backdrop_path ? IMG_BG+d.backdrop_path : null,
       voteAverage: d.vote_average ? d.vote_average.toFixed(1) : "",
-      trailerKey: trailer?.key||null,
-      cast: (d.credits?.cast||[]).slice(0,8).map(c=>({name:c.name,char:c.character,photo:c.profile_path?IMG_W+c.profile_path:null})),
-      crew: (d.credits?.crew||[]).filter(c=>["Director","Screenplay","Writer"].includes(c.job)).slice(0,3),
+      trailerKey: trailer ? trailer.key : null,
+      cast: cast, crew: crew,
       budget: d.budget||0, revenue: d.revenue||0,
       status: d.status||"", origLang: d.original_language||"",
-      origTitle: d.original_title||"", platforms
+      origTitle: d.original_title||"", platforms: platforms
     };
   } catch(e) { return {}; }
 }
