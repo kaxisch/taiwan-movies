@@ -21,10 +21,13 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 .nav-right { display: flex; align-items: center; gap: 8px; }
 .search-wrap { position: relative; display: none; }
 @media(min-width:1024px){ .search-wrap { display: block; } .nav-icon-btn.mobile-only { display: none; } }
-.search-input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; padding: 6px 16px 6px 36px; font-size: 14px; font-weight: 300; color: #fff; width: 256px; outline: none; transition: border-color 0.2s; }
+.search-input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; padding: 6px 32px 6px 36px; font-size: 14px; font-weight: 300; color: #fff; width: 256px; outline: none; transition: border-color 0.2s; }
 .search-input::placeholder { color: rgba(255,255,255,0.4); }
 .search-input:focus { border-color: rgba(255,255,255,0.4); }
 .search-icon-abs { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.5); font-size: 18px; pointer-events: none; }
+.search-clear-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255,255,255,0.35); cursor: pointer; display: none; padding: 0; line-height: 1; transition: color 0.2s; }
+.search-clear-btn:hover { color: rgba(255,255,255,0.7); }
+.search-clear-btn.visible { display: flex; }
 .nav-icon-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: rgba(255,255,255,0.7); cursor: pointer; border-radius: 999px; transition: background 0.2s, color 0.2s; }
 .nav-icon-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
 .nav-refresh-btn { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border: none; background: transparent; color: rgba(255,255,255,0.7); cursor: pointer; border-radius: 999px; transition: background 0.2s, color 0.2s; font-size: 14px; font-weight: 300; font-family: 'Manrope', sans-serif; }
@@ -62,7 +65,7 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 .filter-row { display: flex; flex-direction: column; gap: 12px; padding: 24px 0; border-top: 1px solid rgba(255,255,255,0.05); }
 @media(min-width:768px){ .filter-row { flex-direction: row; align-items: center; justify-content: space-between; } }
 .tab-search-wrap { position: relative; }
-.tab-search { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; padding: 6px 16px 6px 36px; font-size: 14px; font-weight: 300; color: #fff; width: 288px; outline: none; transition: border-color 0.2s; font-family: 'Manrope', sans-serif; }
+.tab-search { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; padding: 6px 32px 6px 36px; font-size: 14px; font-weight: 300; color: #fff; width: 288px; outline: none; transition: border-color 0.2s; font-family: 'Manrope', sans-serif; }
 .tab-search::placeholder { color: rgba(255,255,255,0.4); }
 .tab-search:focus { border-color: rgba(255,255,255,0.4); }
 .filter-right { display: flex; align-items: center; gap: 12px; }
@@ -213,6 +216,7 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
       <div class="search-wrap">
         <span class="material-symbols-outlined search-icon-abs">search</span>
         <input id="global-search" class="search-input" type="text" placeholder="搜尋影片..." oninput="globalSearch(this.value)"/>
+        <button class="search-clear-btn" id="global-search-clear" onclick="clearSearch('global')"><span class="material-symbols-outlined" style="font-size:18px">cancel</span></button>
       </div>
       <button class="nav-icon-btn mobile-only" onclick="toggleMobileSearch()">
         <span class="material-symbols-outlined" style="font-size:20px">search</span>
@@ -227,6 +231,7 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
     <div style="position:relative">
       <span class="material-symbols-outlined search-icon-abs">search</span>
       <input id="mobile-search-input" class="search-input" type="text" placeholder="搜尋影片..." oninput="globalSearch(this.value)"/>
+      <button class="search-clear-btn" id="mobile-search-clear" onclick="clearSearch('global')"><span class="material-symbols-outlined" style="font-size:18px">cancel</span></button>
     </div>
   </div>
 </header>
@@ -274,6 +279,7 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
       <div class="tab-search-wrap">
         <span class="material-symbols-outlined search-icon-abs" style="font-size:18px;color:rgba(255,255,255,0.4)">search</span>
         <input id="tab-search" class="tab-search" type="text" placeholder="在分類中搜尋..." oninput="tabSearch(this.value)"/>
+        <button class="search-clear-btn" id="tab-search-clear" onclick="clearSearch('tab')"><span class="material-symbols-outlined" style="font-size:18px">cancel</span></button>
       </div>
       <div class="filter-right">
         <span class="sort-label">排序方式:</span>
@@ -744,8 +750,26 @@ function sortMovies() {
   renderGrids();
 }
 
-function tabSearch(val) { applyFilters(); }
-function globalSearch(val) { document.getElementById("tab-search").value = val; applyFilters(); }
+function setClearBtn(id, val) { var b = document.getElementById(id); if (b) { if (val) b.classList.add("visible"); else b.classList.remove("visible"); } }
+function tabSearch(val) { setClearBtn("tab-search-clear", val); applyFilters(); }
+function globalSearch(val) {
+  document.getElementById("tab-search").value = val;
+  setClearBtn("tab-search-clear", val);
+  setClearBtn("global-search-clear", val);
+  setClearBtn("mobile-search-clear", val);
+  applyFilters();
+}
+function clearSearch(type) {
+  if (type === "tab") {
+    document.getElementById("tab-search").value = "";
+    tabSearch("");
+  } else {
+    document.getElementById("global-search").value = "";
+    var mobileInput = document.getElementById("mobile-search-input");
+    if (mobileInput) mobileInput.value = "";
+    globalSearch("");
+  }
+}
 function toggleMobileSearch() {
   var bar = document.getElementById("mobile-search-bar");
   bar.classList.toggle("open");
