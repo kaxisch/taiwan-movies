@@ -38,7 +38,7 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 .spinning { animation: spin 1s linear infinite; display: inline-block; }
 
 /* HERO */
-#hero { position: relative; height: 55vh; min-height: 420px; overflow: hidden; display: flex; align-items: flex-end; padding-bottom: 48px; }
+#hero { position: relative; height: 55vh; height: 55svh; min-height: 420px; overflow: hidden; display: flex; align-items: flex-end; padding-bottom: 48px; }
 #hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: opacity 0.7s; }
 .hero-gradient { position: absolute; inset: 0; background: linear-gradient(0deg, var(--bg) 0%, rgba(10,10,15,0.15) 50%, rgba(10,10,15,0) 100%); }
 .hero-gradient-side { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10,10,15,0.5) 0%, rgba(10,10,15,0) 60%); }
@@ -753,13 +753,21 @@ function sortMovies() {
 }
 
 function setClearBtn(id, val) { var b = document.getElementById(id); if (b) { if (val) b.classList.add("visible"); else b.classList.remove("visible"); } }
-function tabSearch(val) { setClearBtn("tab-search-clear", val); applyFilters(); }
+var searchDebounce = null;
+function tabSearch(val) {
+  setClearBtn("tab-search-clear", val);
+  clearTimeout(searchDebounce);
+  if (!val) { applyFilters(); return; }
+  searchDebounce = setTimeout(applyFilters, 400);
+}
 function globalSearch(val) {
   document.getElementById("tab-search").value = val;
   setClearBtn("tab-search-clear", val);
   setClearBtn("global-search-clear", val);
   setClearBtn("mobile-search-clear", val);
-  applyFilters();
+  clearTimeout(searchDebounce);
+  if (!val) { applyFilters(); return; }
+  searchDebounce = setTimeout(applyFilters, 400);
 }
 function clearSearch(type) {
   if (type === "tab") {
@@ -986,10 +994,10 @@ document.addEventListener("keydown", function(e) {
 
   function fixTabBar() {
     if (isFixed) return;
-    var wrapper = document.getElementById("hero-wrapper");
     var tabBar = document.getElementById("tab-bar");
-    if (!wrapper) return;
-    if (window.scrollY < wrapper.offsetTop + wrapper.offsetHeight) return;
+    if (!tabBar) return;
+    var rect = tabBar.getBoundingClientRect();
+    if (rect.top > 2) return;
     var h = tabBar.offsetHeight;
     tabBar.classList.add("force-fixed");
     if (!spacer) {
