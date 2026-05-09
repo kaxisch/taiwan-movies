@@ -14,9 +14,8 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 .glass { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); }
 
 /* NAVBAR */
-#navbar { position: fixed; top: 0; width: 100%; z-index: 50; background: rgba(10,10,15,0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.3s; }
-#navbar.scrolled { background: rgba(10,10,15,0.92); }
-.nav-inner { display: flex; justify-content: space-between; align-items: center; padding: 16px 64px; max-width: 1440px; margin: 0 auto; }
+#navbar { position: relative; width: 100%; background: rgba(10,10,15,0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+.nav-inner { display: flex; justify-content: space-between; align-items: center; padding: 10px 64px; max-width: 1440px; margin: 0 auto; }
 .nav-logo { font-size: 20px; font-weight: 200; letter-spacing: -0.5px; color: #fff; }
 .nav-logo span { color: rgba(255,255,255,0.5); font-size: 14px; margin-left: 6px; }
 .nav-right { display: flex; align-items: center; gap: 8px; }
@@ -37,7 +36,7 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 
 /* HERO */
 #hero { position: relative; height: 55vh; min-height: 420px; overflow: hidden; display: flex; align-items: flex-end; padding-bottom: 48px; }
-#hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; transition: opacity 0.7s; }
+#hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: opacity 0.7s; }
 .hero-gradient { position: absolute; inset: 0; background: linear-gradient(0deg, var(--bg) 0%, rgba(10,10,15,0.15) 50%, rgba(10,10,15,0) 100%); }
 .hero-gradient-side { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10,10,15,0.5) 0%, rgba(10,10,15,0) 60%); }
 .hero-content { position: relative; z-index: 2; padding: 0 64px; width: 100%; max-width: 1440px; margin: 0 auto; }
@@ -54,16 +53,16 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 .btn-detail:hover { background: rgba(255,255,255,0.12); }
 
 /* TAB BAR */
-#tab-bar { position: sticky; top: 64px; z-index: 40; background: rgba(10,10,15,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+#tab-bar { position: sticky; top: 0; z-index: 40; background: rgba(10,10,15,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
 .tab-bar-inner { max-width: 1440px; margin: 0 auto; padding: 0 64px; }
 .tabs { display: flex; gap: 32px; }
-.tab-btn { padding: 16px 0; font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.4); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: color 0.2s; font-family: 'Manrope', sans-serif; white-space: nowrap; }
+.tab-btn { padding: 10px 0; font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.4); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: color 0.2s; font-family: 'Manrope', sans-serif; white-space: nowrap; }
 .tab-btn:hover { color: #fff; }
 .tab-btn.active { color: #fff; border-bottom-color: #fff; }
-.filter-row { display: flex; flex-direction: column; gap: 12px; padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.05); }
+.filter-row { display: flex; flex-direction: column; gap: 12px; padding: 24px 0; border-top: 1px solid rgba(255,255,255,0.05); }
 @media(min-width:768px){ .filter-row { flex-direction: row; align-items: center; justify-content: space-between; } }
 .tab-search-wrap { position: relative; }
-.tab-search { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; padding: 10px 16px 10px 36px; font-size: 14px; font-weight: 300; color: #fff; width: 288px; outline: none; transition: border-color 0.2s; font-family: 'Manrope', sans-serif; }
+.tab-search { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; padding: 6px 16px 6px 36px; font-size: 14px; font-weight: 300; color: #fff; width: 288px; outline: none; transition: border-color 0.2s; font-family: 'Manrope', sans-serif; }
 .tab-search::placeholder { color: rgba(255,255,255,0.4); }
 .tab-search:focus { border-color: rgba(255,255,255,0.4); }
 .filter-right { display: flex; align-items: center; gap: 12px; }
@@ -89,28 +88,24 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 .content-area { padding: 40px 64px; max-width: 1440px; margin: 0 auto; }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
-.movie-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
-@media(min-width:768px){ .movie-grid { grid-template-columns: repeat(3, 1fr); } }
-@media(min-width:1024px){ .movie-grid { grid-template-columns: repeat(5, 1fr); } }
-.empty-msg { display: none; text-align: center; color: rgba(255,255,255,0.3); font-size: 14px; padding: 80px 0; }
-.empty-msg.show { display: block; }
-
-/* CARD */
-.movie-card { cursor: pointer; }
-.card-img-wrap { position: relative; aspect-ratio: 2/3; border-radius: 16px; overflow: hidden; margin-bottom: 12px; background: var(--glass-bg); border: 1px solid var(--glass-border); transition: border-color 0.3s; }
+.movie-card { cursor: pointer; min-width: 0; display: flex; flex-direction: column; }
+.card-img-wrap { position: relative; width: 100%; padding-top: 150%; border-radius: 16px; overflow: hidden; margin-bottom: 16px; background: var(--glass-bg); border: 1px solid var(--glass-border); transition: border-color 0.3s; }
 .card-img-wrap:hover { border-color: rgba(255,255,255,0.15); box-shadow: 0 0 20px rgba(255,255,255,0.05); }
-.card-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s; }
+.card-img-wrap img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s; }
 .card-img-wrap:hover img { transform: scale(1.08); }
 .card-hover-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); opacity: 0; transition: opacity 0.3s; display: flex; flex-direction: column; justify-content: flex-end; padding: 12px; }
 .card-img-wrap:hover .card-hover-overlay { opacity: 1; }
+.movie-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); column-gap: 24px; row-gap: 56px; align-items: stretch; }
+@media(min-width:768px){ .movie-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+@media(min-width:1024px){ .movie-grid { grid-template-columns: repeat(5, minmax(0,1fr)); } }
 .card-hover-genre { font-size: 11px; color: rgba(255,255,255,0.8); font-weight: 300; }
 .card-no-img { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.1); }
 .card-title { font-size: 14px; font-weight: 300; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
 .card-title-en { font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
-.card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.10); margin-top: auto; padding-top: 8px; }
 .card-date { font-size: 11px; color: rgba(255,255,255,0.4); }
-.badge-imdb { background: rgba(245,210,80,0.15); border: 1px solid rgba(245,210,80,0.5); color: rgba(255,255,255,0.5); border-radius: 4px; padding: 1px 5px; font-size: 10px; font-weight: 600; white-space: nowrap; }
-.badge-tmdb { background: rgba(90,200,250,0.15); border: 1px solid rgba(90,200,250,0.5); color: rgba(255,255,255,0.5); border-radius: 4px; padding: 1px 5px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+.badge-imdb { background: rgba(245,210,80,0.15); border: 1px solid rgba(245,210,80,0.5); color: rgba(255,255,255,0.5); border-radius: 2px; padding: 1px 5px; font-size: 10px; font-weight: 400; white-space: nowrap; }
+.badge-tmdb { background: rgba(90,200,250,0.15); border: 1px solid rgba(90,200,250,0.5); color: rgba(255,255,255,0.5); border-radius: 2px; padding: 1px 5px; font-size: 10px; font-weight: 400; white-space: nowrap; }
 
 /* SKELETON */
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -166,6 +161,10 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 .trailer-close { position: absolute; top: -40px; right: 0; background: none; border: none; color: rgba(255,255,255,0.6); cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 14px; font-family: 'Manrope', sans-serif; }
 .trailer-close:hover { color: #fff; }
 #trailer-iframe { width: 100%; height: 100%; border-radius: 12px; border: none; }
+
+/* EMPTY */
+.empty-msg { display: none; color: rgba(255,255,255,0.4); font-size: 14px; font-weight: 300; padding: 40px 0; }
+.empty-msg.show { display: block; }
 
 /* ERROR */
 #error-banner { display: none; margin-bottom: 24px; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 16px; font-size: 14px; color: rgba(255,255,255,0.6); }
@@ -344,7 +343,7 @@ var OMDB_KEY = "d2e6c0dc";
 var TMDB_BASE = "https://api.themoviedb.org/3";
 var IMG_W = "https://image.tmdb.org/t/p/w500";
 var IMG_BG = "https://image.tmdb.org/t/p/w1280";
-var CACHE_KEY = "watchtonight_v3";
+var CACHE_KEY = "watchtonight_v4";
 var CACHE_TTL = 24 * 60 * 60 * 1000;
 
 var allMovies = { now: [], soon: [], stream: [] };
@@ -360,7 +359,9 @@ var genreMap = {
   "剧情":"劇情","家庭":"家庭","奇幻":"奇幻","历史":"歷史","恐怖":"恐怖",
   "音乐":"音樂","悬疑":"懸疑","爱情":"愛情","科幻":"科幻","电视电影":"電視電影",
   "惊悚":"驚悚","战争":"戰爭","西部":"西部","动画":"動畫","传记":"傳記",
-  "运动":"運動","歌舞":"歌舞","武侠":"武俠","古装":"古裝"
+  "运动":"運動","歌舞":"歌舞","武侠":"武俠","古装":"古裝",
+  "记录片":"紀錄片","纪录":"紀錄","记录":"紀錄","动作片":"動作片",
+  "恐怖片":"恐怖片","爱情片":"愛情片","喜剧片":"喜劇片"
 };
 
 function toTrad(s) { return genreMap[s] || s; }
@@ -587,21 +588,23 @@ function fetchAll() {
 }
 
 function cardHTML(m, showRatings) {
-  var poster = m.poster
-    ? '<img src="' + m.poster + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;transition:transform 0.7s"/>'
+  var imgHTML = m.poster
+    ? '<img src="' + m.poster + '" alt="" loading="lazy"/>'
     : '<div class="card-no-img"><span class="material-symbols-outlined" style="font-size:48px">movie</span></div>';
   var titleEn = (m.titleEn && m.titleEn !== m.titleZh)
     ? '<p class="card-title-en">' + escHtml(m.titleEn) + '</p>'
     : '<div style="height:4px"></div>';
   var metaHTML = '<div class="card-meta"><span class="card-date">' + formatDate(m.releaseDate) + '</span>';
   if (showRatings) {
-    if (m.imdb) metaHTML += '<span class="badge-imdb">IMDb ' + escHtml(m.imdb) + '</span>';
-    if (m.voteAverage) metaHTML += '<span class="badge-tmdb">TMDB ' + tmdbScore(m.voteAverage) + '</span>';
+    if (m.imdb) metaHTML += '<span class="badge-imdb">IMDb <span style="color:rgba(255,255,255,0.7)">' + escHtml(m.imdb) + '</span></span>';
+    if (m.voteAverage) metaHTML += '<span class="badge-tmdb">TMDB <span style="color:rgba(255,255,255,0.7)">' + tmdbScore(m.voteAverage) + '</span></span>';
   }
   metaHTML += '</div>';
   return '<div class="movie-card fade-in" onclick="openModal(' + m.id + ')">' +
-    '<div class="card-img-wrap">' + poster +
-    '<div class="card-hover-overlay"><span class="card-hover-genre">' + escHtml(m.genre.slice(0,2).join(' / ')) + '</span></div></div>' +
+    '<div class="card-img-wrap">' +
+    imgHTML +
+    '<div class="card-hover-overlay">' +
+    '<span class="card-hover-genre">' + escHtml(m.genre.slice(0,2).join(' / ')) + '</span></div></div>' +
     '<p class="card-title">' + escHtml(m.titleZh) + '</p>' +
     titleEn + metaHTML + '</div>';
 }
@@ -657,7 +660,7 @@ function renderHero(movies) {
     var img = document.getElementById("hero-img");
     img.style.opacity = "0";
     img.src = m.backdrop;
-    img.onload = function() { img.style.opacity = "0.5"; };
+    img.onload = function() { img.style.opacity = "0.85"; };
   }
 }
 
@@ -876,8 +879,8 @@ function renderModal(movie, detail, imdbRating) {
     (movie.releaseDate ? ' · ' + movie.releaseDate.split('-')[0] : '') +
     (detail.duration ? ' · ' + detail.duration + '分鐘' : '') + '</p>' +
     '<div class="modal-ratings">' +
-    (imdbRating ? '<span class="badge-imdb" style="font-size:12px;padding:3px 8px">IMDb ' + escHtml(imdbRating) + '</span>' : '') +
-    (detail.voteAverage ? '<span class="badge-tmdb" style="font-size:12px;padding:3px 8px">TMDB ' + tmdbScore(detail.voteAverage) + '</span>' : '') +
+    (imdbRating ? '<span class="badge-imdb" style="font-size:12px;padding:3px 8px">IMDb <span style="color:rgba(255,255,255,0.7)">' + escHtml(imdbRating) + '</span></span>' : '') +
+    (detail.voteAverage ? '<span class="badge-tmdb" style="font-size:12px;padding:3px 8px">TMDB <span style="color:rgba(255,255,255,0.7)">' + tmdbScore(detail.voteAverage) + '</span></span>' : '') +
     '</div>' +
     (trailerKey ? '<button class="btn-trailer" onclick="playTrailer(\'' + trailerKey + '\')"><span class="material-symbols-outlined" style="font-size:16px">play_arrow</span>播放預告</button>' : '') +
     '</div></div>' +
@@ -913,13 +916,6 @@ document.addEventListener("keydown", function(e) {
   if (e.key === "Escape") { closeModal(); closeTrailer(); }
 });
 
-window.addEventListener("scroll", function() {
-  var navbar = document.getElementById("navbar");
-  var tabBar = document.getElementById("tab-bar");
-  var tabBarTop = tabBar.getBoundingClientRect().top;
-  if (tabBarTop <= 64) navbar.classList.add("scrolled");
-  else navbar.classList.remove("scrolled");
-});
 
 function loadData(forceRefresh) {
   var icon = document.getElementById("refresh-icon");
