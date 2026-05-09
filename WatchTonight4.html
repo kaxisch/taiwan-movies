@@ -14,7 +14,7 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 .glass { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); }
 
 /* NAVBAR */
-#navbar { position: relative; width: 100%; background: rgba(10,10,15,0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+#navbar { position: absolute; top: 0; left: 0; right: 0; z-index: 50; background: rgba(10,10,15,0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
 .nav-inner { display: flex; justify-content: space-between; align-items: center; padding: 10px 64px; max-width: 1440px; margin: 0 auto; }
 .nav-logo { font-size: 20px; font-weight: 200; letter-spacing: -0.5px; color: #fff; }
 .nav-logo span { color: rgba(255,255,255,0.5); font-size: 14px; margin-left: 6px; }
@@ -45,7 +45,7 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 .hero-rating-item { display: flex; align-items: center; gap: 4px; color: rgba(255,255,255,0.8); font-size: 12px; }
 .hero-divider { width: 1px; height: 12px; background: rgba(255,255,255,0.2); }
 .hero-title { font-size: clamp(36px, 5vw, 56px); font-weight: 200; letter-spacing: -1px; color: #fff; margin-bottom: 12px; line-height: 1.1; }
-.hero-synopsis { color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 300; margin-bottom: 24px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 480px; }
+.hero-synopsis { color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 300; margin-bottom: 24px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 480px; }
 .hero-btns { display: flex; gap: 12px; }
 .btn-trailer { padding: 10px 24px 10px 16px; background: rgba(255,255,255,0.18); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.25); color: #fff; border-radius: 999px; cursor: pointer; font-size: 14px; font-weight: 400; display: flex; align-items: center; gap: 6px; transition: background 0.2s; font-family: 'Manrope', sans-serif; }
 .btn-trailer:hover { background: rgba(255,255,255,0.26); }
@@ -53,7 +53,7 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 .btn-detail:hover { background: rgba(255,255,255,0.12); }
 
 /* TAB BAR */
-#tab-bar { position: sticky; top: 0; z-index: 40; background: rgba(10,10,15,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+#tab-bar { position: sticky; top: 0; z-index: 40; background: rgba(10,10,15,0.80); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
 .tab-bar-inner { max-width: 1440px; margin: 0 auto; padding: 0 64px; }
 .tabs { display: flex; gap: 32px; }
 .tab-btn { padding: 10px 0; font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.4); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: color 0.2s; font-family: 'Manrope', sans-serif; white-space: nowrap; }
@@ -204,6 +204,7 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 </head>
 <body>
 
+<div style="position:relative">
 <!-- NAVBAR -->
 <header id="navbar">
   <div class="nav-inner">
@@ -259,6 +260,7 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
     </div>
   </div>
 </section>
+</div>
 
 <!-- TAB BAR -->
 <div id="tab-bar">
