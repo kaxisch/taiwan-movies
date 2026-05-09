@@ -208,7 +208,7 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 </head>
 <body>
 
-<div style="position:relative">
+<div id="hero-wrapper" style="position:relative">
 <!-- NAVBAR -->
 <header id="navbar">
   <div class="nav-inner">
@@ -978,6 +978,28 @@ function closeTrailer() {
 document.addEventListener("keydown", function(e) {
   if (e.key === "Escape") { closeModal(); closeTrailer(); }
 });
+
+(function() {
+  function snapToStickPoint(el) {
+    var wrapper = document.getElementById("hero-wrapper");
+    if (!wrapper) return;
+    var stickPoint = wrapper.offsetTop + wrapper.offsetHeight;
+    if (window.scrollY >= stickPoint) {
+      window.scrollTo({ top: stickPoint, behavior: "instant" });
+    }
+    el.focus({ preventScroll: true });
+  }
+  ["tab-search", "mobile-search-input", "global-search"].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("touchstart", function() {
+      snapToStickPoint(el);
+    }, { passive: true });
+    el.addEventListener("mousedown", function() {
+      requestAnimationFrame(function() { snapToStickPoint(el); });
+    });
+  });
+})();
 
 
 function loadData(forceRefresh) {
