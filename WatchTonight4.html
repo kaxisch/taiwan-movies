@@ -996,8 +996,6 @@ document.addEventListener("keydown", function(e) {
     if (isFixed) return;
     var tabBar = document.getElementById("tab-bar");
     if (!tabBar) return;
-    var rect = tabBar.getBoundingClientRect();
-    if (rect.top > 2) return;
     var h = tabBar.offsetHeight;
     tabBar.classList.add("force-fixed");
     if (!spacer) {
@@ -1018,9 +1016,37 @@ document.addEventListener("keydown", function(e) {
   ["tab-search", "mobile-search-input"].forEach(function(id) {
     var el = document.getElementById(id);
     if (!el) return;
-    el.addEventListener("focus", fixTabBar);
-    el.addEventListener("blur", unfixTabBar);
+
+    // touchstart fires before keyboard opens — instantly snap scroll so the tab bar
+    // is at viewport top, then lock it fixed. This prevents iOS's auto-scroll from
+    // producing the visible "slide in" effect.
+    el.addEventListener("touchstart", function() {
+      if (isFixed) return;
+      var tabBar = document.getElementById("tab-bar");
+      if (!tabBar) return;
+      var targetY = tabBar.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo(0, targetY);
+      fixTabBar();
+    }, { passive: true });
+
+    // Fallback for mouse/desktop: fix only when the bar is already at viewport top
+    el.addEventListener("focus", function() {
+      if (isFixed) return;
+      var tabBar = document.getElementById("tab-bar");
+      if (!tabBar) return;
+      if (tabBar.getBoundingClientRect().top <= 2) fixTabBar();
+    });
   });
+
+  // Unfix when user scrolls back up into the hero — not on blur, to avoid
+  // the bar jumping to a wrong position when the keyboard closes.
+  window.addEventListener("scroll", function() {
+    if (!isFixed) return;
+    var wrapper = document.getElementById("hero-wrapper");
+    if (wrapper && window.scrollY < wrapper.offsetTop + wrapper.offsetHeight) {
+      unfixTabBar();
+    }
+  }, { passive: true });
 })();
 
 
