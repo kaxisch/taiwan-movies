@@ -57,6 +57,7 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 
 /* TAB BAR */
 #tab-bar { position: sticky; top: 0; z-index: 40; background: rgba(10,10,15,0.80); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+#tab-bar.force-fixed { position: fixed !important; top: 0; left: 0; right: 0; }
 .tab-bar-inner { max-width: 1440px; margin: 0 auto; padding: 0 64px; }
 .tabs { display: flex; gap: 32px; }
 .tab-btn { padding: 10px 0; font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.4); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: color 0.2s; font-family: 'Manrope', sans-serif; white-space: nowrap; }
@@ -980,24 +981,37 @@ document.addEventListener("keydown", function(e) {
 });
 
 (function() {
-  function snapToStickPoint(el) {
+  var spacer = null;
+  var isFixed = false;
+
+  function fixTabBar() {
+    if (isFixed) return;
     var wrapper = document.getElementById("hero-wrapper");
+    var tabBar = document.getElementById("tab-bar");
     if (!wrapper) return;
-    var stickPoint = wrapper.offsetTop + wrapper.offsetHeight;
-    if (window.scrollY >= stickPoint) {
-      window.scrollTo({ top: stickPoint, behavior: "instant" });
+    if (window.scrollY < wrapper.offsetTop + wrapper.offsetHeight) return;
+    var h = tabBar.offsetHeight;
+    tabBar.classList.add("force-fixed");
+    if (!spacer) {
+      spacer = document.createElement("div");
+      tabBar.parentNode.insertBefore(spacer, tabBar.nextSibling);
     }
-    el.focus({ preventScroll: true });
+    spacer.style.height = h + "px";
+    isFixed = true;
   }
-  ["tab-search", "mobile-search-input", "global-search"].forEach(function(id) {
+
+  function unfixTabBar() {
+    if (!isFixed) return;
+    document.getElementById("tab-bar").classList.remove("force-fixed");
+    if (spacer) spacer.style.height = "0";
+    isFixed = false;
+  }
+
+  ["tab-search", "mobile-search-input"].forEach(function(id) {
     var el = document.getElementById(id);
     if (!el) return;
-    el.addEventListener("touchstart", function() {
-      snapToStickPoint(el);
-    }, { passive: true });
-    el.addEventListener("mousedown", function() {
-      requestAnimationFrame(function() { snapToStickPoint(el); });
-    });
+    el.addEventListener("focus", fixTabBar);
+    el.addEventListener("blur", unfixTabBar);
   });
 })();
 
