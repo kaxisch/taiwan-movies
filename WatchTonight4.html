@@ -174,6 +174,17 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .fade-in { animation: fadeIn 0.4s ease forwards; }
 
+/* MOBILE SEARCH BAR */
+#mobile-search-bar { display: none; padding: 0 20px 10px; }
+#mobile-search-bar.open { display: block; }
+#mobile-search-bar .search-input { width: 100%; }
+@media(min-width:1024px){ #mobile-search-bar { display: none !important; } }
+
+/* CLOSE FILTER BTN */
+.close-filter-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; color: rgba(255,255,255,0.6); cursor: pointer; transition: background 0.2s, color 0.2s; flex-shrink: 0; }
+.close-filter-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.filter-panel-bottom { display: flex; align-items: center; justify-content: space-between; }
+
 @media(max-width:768px){
   .nav-inner { padding: 16px 20px; }
   .hero-content { padding: 0 20px; }
@@ -181,6 +192,13 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
   .content-area { padding: 32px 20px; }
   .modal-hero-info { padding: 16px 20px; }
   .modal-body { padding: 20px; }
+  .tab-search { font-size: 16px; }
+  .card-meta { flex-wrap: nowrap; overflow: hidden; }
+}
+@media(max-width:430px){
+  .badge-imdb, .badge-tmdb { padding: 1px 2px; }
+  .card-date { font-size: 10px; }
+  .card-meta { gap: 4px; }
 }
 </style>
 </head>
@@ -195,13 +213,19 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
         <span class="material-symbols-outlined search-icon-abs">search</span>
         <input id="global-search" class="search-input" type="text" placeholder="搜尋影片..." oninput="globalSearch(this.value)"/>
       </div>
-      <button class="nav-icon-btn mobile-only" onclick="">
+      <button class="nav-icon-btn mobile-only" onclick="toggleMobileSearch()">
         <span class="material-symbols-outlined" style="font-size:20px">search</span>
       </button>
       <button id="refresh-btn" class="nav-refresh-btn" onclick="refreshData()">
         <span class="material-symbols-outlined" id="refresh-icon" style="font-size:20px">refresh</span>
         <span class="refresh-label">更新</span>
       </button>
+    </div>
+  </div>
+  <div id="mobile-search-bar">
+    <div style="position:relative">
+      <span class="material-symbols-outlined search-icon-abs">search</span>
+      <input id="mobile-search-input" class="search-input" type="text" placeholder="搜尋影片..." oninput="globalSearch(this.value)"/>
     </div>
   </div>
 </header>
@@ -254,10 +278,10 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
         <select id="sort-select" class="sort-select" onchange="sortMovies()">
           <option value="date_desc">上映日期（新→舊）</option>
           <option value="date_asc">上映日期（舊→新）</option>
-          <option value="tmdb_desc">TMDB 評分（高→低）</option>
-          <option value="tmdb_asc">TMDB 評分（低→高）</option>
           <option value="imdb_desc">IMDb 評分（高→低）</option>
           <option value="imdb_asc">IMDb 評分（低→高）</option>
+          <option value="tmdb_desc">TMDB 評分（高→低）</option>
+          <option value="tmdb_asc">TMDB 評分（低→高）</option>
         </select>
         <div class="divider-v"></div>
         <button class="filter-btn" onclick="toggleFilter()">
@@ -285,9 +309,14 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
           <div class="filter-tags" id="platform-filters"></div>
         </div>
       </div>
-      <button class="clear-btn" onclick="clearFilters()">
-        <span class="material-symbols-outlined" style="font-size:14px">close</span>清除篩選
-      </button>
+      <div class="filter-panel-bottom">
+        <button class="clear-btn" onclick="clearFilters()">
+          <span class="material-symbols-outlined" style="font-size:14px">close</span>清除篩選
+        </button>
+        <button class="close-filter-btn" onclick="toggleFilter()">
+          <span class="material-symbols-outlined" style="font-size:20px">keyboard_arrow_up</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -632,7 +661,7 @@ function showSkeletons() {
 
 function renderGrids() {
   ["now","soon","stream"].forEach(function(t) {
-    var showR = t !== "soon";
+    var showR = true;
     var html = "";
     for (var i = 0; i < filtered[t].length; i++) html += cardHTML(filtered[t][i], showR);
     document.getElementById("grid-" + t).innerHTML = html;
@@ -715,6 +744,13 @@ function sortMovies() {
 
 function tabSearch(val) { applyFilters(); }
 function globalSearch(val) { document.getElementById("tab-search").value = val; applyFilters(); }
+function toggleMobileSearch() {
+  var bar = document.getElementById("mobile-search-bar");
+  bar.classList.toggle("open");
+  if (bar.classList.contains("open")) {
+    setTimeout(function() { document.getElementById("mobile-search-input").focus(); }, 50);
+  }
+}
 
 function buildGenreFilters() {
   var genreSet = {};
