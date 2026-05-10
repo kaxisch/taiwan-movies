@@ -18,7 +18,7 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 .orb-2 { width: 170px; height: 170px; background: radial-gradient(circle, rgba(20,100,220,0.70) 0%, transparent 70%); }
 .orb-3 { width: 140px; height: 140px; background: radial-gradient(circle, rgba(30,160,210,0.70) 0%, transparent 70%); }
 .orb-4 { width: 120px; height: 120px; background: radial-gradient(circle, rgba(200,150,10,0.70) 0%, transparent 70%); }
-.material-symbols-outlined { font-family: 'Material Symbols Outlined' !important; font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24; font-weight: normal; font-style: normal; display: inline-block; line-height: 1; text-transform: none; letter-spacing: normal; }
+.material-symbols-outlined { font-family: 'Material Symbols Outlined' !important; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-weight: normal; font-style: normal; display: inline-block; line-height: 1; text-transform: none; letter-spacing: normal; }
 .glass { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); }
 
 #navbar { position: relative; z-index: 50; background: rgba(10,10,15,0.95); border-bottom: 1px solid rgba(255,255,255,0.06); }
@@ -50,16 +50,21 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 .tab-btn { padding: 14px 0; font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.6); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: color 0.2s; font-family: 'Manrope', sans-serif; white-space: nowrap; }
 .tab-btn:hover { color: #fff; }
 .tab-btn.active { color: #fff; border-bottom-color: #fff; }
-.filter-row { display: flex; flex-direction: column; gap: 12px; padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.05); }
-@media(min-width:768px){ .filter-row { flex-direction: row; align-items: center; justify-content: space-between; } }
-.tab-search-wrap { position: relative; }
-.tab-search { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 6px 32px 6px 36px; font-size: 14px; font-weight: 300; color: #fff; width: 288px; outline: none; transition: border-color 0.2s; font-family: 'Manrope', sans-serif; }
+.filter-row { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; row-gap: 16px; padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.05); }
+.filter-left-group { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.filter-right-group { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.tab-search-wrap { position: relative; flex-shrink: 0; }
+.tab-search { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 6px 32px 6px 36px; font-size: 14px; font-weight: 300; color: #fff; width: 200px; outline: none; transition: border-color 0.2s; font-family: 'Manrope', sans-serif; }
 .tab-search::placeholder { color: rgba(255,255,255,0.4); }
 .tab-search:focus { border-color: rgba(255,255,255,0.4); }
-.filter-right { display: flex; align-items: center; gap: 12px; }
-.sort-label { font-size: 14px; color: rgba(255,255,255,0.6); }
-.sort-select { background: transparent; border: none; font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.8); cursor: pointer; outline: none; font-family: 'Manrope', sans-serif; }
+.sort-icon-label { display: flex; align-items: center; color: rgba(255,255,255,0.5); flex-shrink: 0; pointer-events: none; margin-left: 12px; }
+.sort-select { background: transparent; border: none; font-size: 13px; font-weight: 300; color: rgba(255,255,255,0.8); cursor: pointer; outline: none; font-family: 'Manrope', sans-serif; appearance: none; -webkit-appearance: none; }
 .sort-select option { background: #1a1a2e; }
+.active-filters-display { max-width: 240px; overflow: hidden; display: flex; align-items: center; }
+.active-filters-text { font-size: 12px; color: rgba(255,255,255,0.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; flex: 1; min-width: 0; }
+.clear-active-btn { display: none; align-items: center; justify-content: center; flex-shrink: 0; width: 22px; height: 22px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 999px; color: rgba(255,255,255,0.5); cursor: pointer; transition: background 0.2s, color 0.2s; padding: 0; }
+.clear-active-btn.visible { display: flex; }
+.clear-active-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
 .divider-v { width: 1px; height: 16px; background: rgba(255,255,255,0.1); }
 .filter-btn { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: transparent; border: none; font-size: 14px; color: rgba(255,255,255,0.6); cursor: pointer; border-radius: 8px; transition: background 0.2s, color 0.2s; font-family: 'Manrope', sans-serif; }
 .filter-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
@@ -70,10 +75,10 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 .filter-tag { padding: 4px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.2); font-size: 12px; color: rgba(255,255,255,0.65); background: none; cursor: pointer; transition: all 0.2s; font-family: 'Manrope', sans-serif; }
 .filter-tag:hover { color: #fff; }
 .filter-tag.active { background: rgba(255,255,255,0.2); color: #fff; border-color: rgba(255,255,255,0.4); }
-.rating-select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 6px 12px; font-size: 14px; color: rgba(255,255,255,0.8); outline: none; min-width: 120px; font-family: 'Manrope', sans-serif; }
+.rating-select { background: rgba(255,255,255,0.05) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 10px center / 10px 6px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 6px 28px 6px 12px; font-size: 14px; color: rgba(255,255,255,0.8); outline: none; min-width: 120px; font-family: 'Manrope', sans-serif; appearance: none; -webkit-appearance: none; }
 .rating-select option { background: #1a1a2e; }
-.clear-btn { display: flex; align-items: center; gap: 6px; padding: 6px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 999px; cursor: pointer; font-size: 14px; transition: background 0.2s; font-family: 'Manrope', sans-serif; }
-.clear-btn:hover { background: rgba(255,255,255,0.12); }
+.clear-btn { display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 14px; transition: color 0.2s; font-family: 'Manrope', sans-serif; }
+.clear-btn:hover { color: #fff; }
 .close-filter-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; color: rgba(255,255,255,0.6); cursor: pointer; transition: background 0.2s, color 0.2s; flex-shrink: 0; }
 .close-filter-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
 .filter-panel-bottom { display: flex; align-items: center; justify-content: space-between; }
@@ -96,9 +101,10 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 .card-title { font-size: 14px; font-weight: 300; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
 .card-title-en { font-size: 11px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
 .card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.10); margin-top: auto; padding-top: 8px; }
+.card-platforms { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card-date { font-size: 11px; color: rgba(255,255,255,0.55); }
-.badge-imdb { background: rgba(245,210,80,0.15); border: 1px solid rgba(245,210,80,0.5); color: rgba(255,255,255,0.5); border-radius: 4px; padding: 1px 5px; font-size: 10px; font-weight: 400; white-space: nowrap; }
-.badge-tmdb { background: rgba(90,200,250,0.15); border: 1px solid rgba(90,200,250,0.5); color: rgba(255,255,255,0.5); border-radius: 4px; padding: 1px 5px; font-size: 10px; font-weight: 400; white-space: nowrap; }
+.badge-imdb { background: rgba(245,210,80,0.15); border: 1px solid rgba(245,210,80,0.5); color: rgba(255,255,255,0.5); border-radius: 8px; padding: 1px 5px; font-size: 10px; font-weight: 400; white-space: nowrap; }
+.badge-tmdb { background: rgba(90,200,250,0.15); border: 1px solid rgba(90,200,250,0.5); color: rgba(255,255,255,0.5); border-radius: 8px; padding: 1px 5px; font-size: 10px; font-weight: 400; white-space: nowrap; }
 
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
@@ -124,7 +130,7 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 .modal-ratings { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
 .modal-rating-divider { width: 1px; height: 12px; background: rgba(255,255,255,0.3); }
 .modal-rating-item { display: flex; align-items: center; gap: 4px; font-size: 13px; color: rgba(255,255,255,0.5); }
-.modal-rating-item .star { font-size: 13px; color: rgba(255,255,255,0.6); font-variation-settings: 'FILL' 1, 'wght' 200, 'GRAD' 0, 'opsz' 24; }
+.modal-rating-item .star { font-size: 13px; color: rgba(255,255,255,0.6); font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 .modal-rating-item .val { color: #fff; }
 .btn-trailer { display: inline-flex; align-items: center; gap: 6px; padding: 6px 18px 6px 8px; background: rgba(255,255,255,0.20); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.4); border-radius: 999px; color: #fff; font-size: 14px; font-weight: 400; font-family: 'Manrope', sans-serif; cursor: pointer; transition: background 0.2s; }
 .btn-trailer:hover { background: rgba(255,255,255,0.25); }
@@ -180,7 +186,11 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
   .content-area { padding: 28px 20px; }
   .modal-hero-info { padding: 16px 20px; }
   .modal-body { padding: 20px; }
+  .filter-left-group { width: 100%; }
+  .filter-right-group { width: 100%; }
+  .tab-search-wrap { flex: 1; min-width: 0; max-width: 50%; }
   .tab-search { font-size: 16px; width: 100%; }
+  .filter-desktop-divider { display: none; }
   .search-input { font-size: 16px; }
 }
 @media(max-width:430px){
@@ -232,24 +242,32 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
       <button class="tab-btn" id="tab-stream" onclick="switchTab('stream')">串流新上架</button>
     </div>
     <div class="filter-row">
-      <div class="tab-search-wrap">
-        <span class="material-symbols-outlined search-icon-abs" style="font-size:18px;color:rgba(255,255,255,0.4)">search</span>
-        <input id="tab-search" class="tab-search" type="text" placeholder="在分類中搜尋..."/>
-        <button class="search-clear-btn" id="tab-search-clear" onclick="clearSearch('tab')"><span class="material-symbols-outlined" style="font-size:18px">cancel</span></button>
-      </div>
-      <div class="filter-right">
-        <span class="sort-label">排序方式:</span>
+      <div class="filter-left-group">
+        <div class="tab-search-wrap">
+          <span class="material-symbols-outlined search-icon-abs" style="font-size:18px;color:rgba(255,255,255,0.4)">search</span>
+          <input id="tab-search" class="tab-search" type="text" placeholder="在分類中搜尋..."/>
+          <button class="search-clear-btn" id="tab-search-clear" onclick="clearSearch('tab')"><span class="material-symbols-outlined" style="font-size:18px">cancel</span></button>
+        </div>
+        <span class="material-symbols-outlined sort-icon-label" style="font-size:20px">sort</span>
         <select id="sort-select" class="sort-select" onchange="sortMovies()">
-          <option value="date_desc">上映日期（新→舊）</option>
-          <option value="date_asc">上映日期（舊→新）</option>
-          <option value="imdb_desc">IMDb 評分（高→低）</option>
-          <option value="imdb_asc">IMDb 評分（低→高）</option>
-          <option value="tmdb_desc">TMDB 評分（高→低）</option>
-          <option value="tmdb_asc">TMDB 評分（低→高）</option>
+          <option value="date_desc">上映日期 ↓</option>
+          <option value="date_asc">上映日期 ↑</option>
+          <option value="imdb_desc">IMDb ↓</option>
+          <option value="imdb_asc">IMDb ↑</option>
+          <option value="tmdb_desc">TMDB ↓</option>
+          <option value="tmdb_asc">TMDB ↑</option>
         </select>
-        <div class="divider-v"></div>
+      </div>
+      <div class="filter-right-group">
+        <div class="divider-v filter-desktop-divider"></div>
         <button class="filter-btn" onclick="toggleFilter()">
           <span class="material-symbols-outlined" style="font-size:16px">tune</span>篩選
+        </button>
+        <div class="active-filters-display">
+          <span id="active-filters-text" class="active-filters-text"></span>
+        </div>
+        <button id="clear-all-filters-btn" class="clear-active-btn" onclick="clearFilters()">
+          <span class="material-symbols-outlined" style="font-size:14px">close</span>
         </button>
       </div>
     </div>
@@ -275,7 +293,7 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
       </div>
       <div class="filter-panel-bottom">
         <button class="clear-btn" onclick="clearFilters()">
-          <span class="material-symbols-outlined" style="font-size:14px">close</span>清除篩選
+          <span class="material-symbols-outlined" style="font-size:20px">close</span>清除篩選
         </button>
         <button class="close-filter-btn" onclick="toggleFilter()">
           <span class="material-symbols-outlined" style="font-size:20px">keyboard_arrow_up</span>
@@ -342,6 +360,7 @@ var currentTab = "now";
 var activeGenres = {};
 var activePlatforms = {};
 var searchDebounce = null;
+var tabSortState = { now: "date_desc", soon: "date_asc", stream: "date_desc" };
 
 var genreMap = {
   "动作":"動作","冒险":"冒險","喜剧":"喜劇","犯罪":"犯罪","纪录片":"紀錄片",
@@ -510,7 +529,7 @@ function fetchAll() {
   });
 }
 
-function cardHTML(m, showRatings) {
+function cardHTML(m, showRatings, showPlatforms) {
   var imgHTML = m.poster
     ? '<img src="' + m.poster + '" alt="" loading="lazy"/>'
     : '<div class="card-no-img"><span class="material-symbols-outlined" style="font-size:48px">movie</span></div>';
@@ -523,10 +542,16 @@ function cardHTML(m, showRatings) {
     if (m.voteAverage) metaHTML += '<span class="badge-tmdb">TMDB <span style="color:rgba(255,255,255,0.7)">' + tmdbScore(m.voteAverage) + '</span></span>';
   }
   metaHTML += '</div>';
+  var platformsHTML = '';
+  if (showPlatforms && m.platforms && m.platforms.length > 0) {
+    var names = [];
+    for (var i = 0; i < m.platforms.length; i++) names.push(m.platforms[i].name);
+    platformsHTML = '<p class="card-platforms">' + escHtml(names.join(' · ')) + '</p>';
+  }
   return '<div class="movie-card fade-in" onclick="openModal(' + m.id + ')">' +
     '<div class="card-img-wrap">' + imgHTML +
     '<div class="card-hover-overlay"><span class="card-hover-genre">' + escHtml(m.genre.slice(0,2).join(' / ')) + '</span></div></div>' +
-    '<p class="card-title">' + escHtml(m.titleZh) + '</p>' + titleEn + metaHTML + '</div>';
+    '<p class="card-title">' + escHtml(m.titleZh) + '</p>' + titleEn + metaHTML + platformsHTML + '</div>';
 }
 
 function skeletonHTML() {
@@ -552,7 +577,7 @@ function renderGrids() {
   setTimeout(function() {
     ["now","soon","stream"].forEach(function(t) {
       var html = "";
-      for (var i = 0; i < filtered[t].length; i++) html += cardHTML(filtered[t][i], true);
+      for (var i = 0; i < filtered[t].length; i++) html += cardHTML(filtered[t][i], true, t === "stream");
       document.getElementById("grid-" + t).innerHTML = html;
       var empty = document.getElementById("empty-" + t);
       if (filtered[t].length === 0) empty.classList.add("show"); else empty.classList.remove("show");
@@ -591,20 +616,40 @@ function applyFilters() {
     });
   });
   sortMovies();
+  updateActiveFiltersBadge();
+}
+
+function updateActiveFiltersBadge() {
+  var parts = [];
+  var genreKeys = Object.keys(activeGenres);
+  for (var i = 0; i < genreKeys.length; i++) parts.push(genreKeys[i]);
+  var platformKeys = Object.keys(activePlatforms);
+  for (var j = 0; j < platformKeys.length; j++) parts.push(platformKeys[j]);
+  var rating = parseFloat(document.getElementById("min-rating-select").value) || 0;
+  if (rating > 0) parts.push(rating + "分以上");
+  var el = document.getElementById("active-filters-text");
+  var clearBtn = document.getElementById("clear-all-filters-btn");
+  if (el) el.textContent = parts.join(", ");
+  if (clearBtn) {
+    if (parts.length > 0) clearBtn.classList.add("visible");
+    else clearBtn.classList.remove("visible");
+  }
 }
 
 function sortMovies() {
-  var val = document.getElementById("sort-select").value;
-  function sorter(a, b) {
-    if (val === "date_desc") return b.releaseDate > a.releaseDate ? 1 : -1;
-    if (val === "date_asc") return a.releaseDate > b.releaseDate ? 1 : -1;
-    if (val === "tmdb_desc") return (parseFloat(b.voteAverage)||0) - (parseFloat(a.voteAverage)||0);
-    if (val === "tmdb_asc") return (parseFloat(a.voteAverage)||0) - (parseFloat(b.voteAverage)||0);
-    if (val === "imdb_desc") return (parseFloat(b.imdb)||0) - (parseFloat(a.imdb)||0);
-    if (val === "imdb_asc") return (parseFloat(a.imdb)||0) - (parseFloat(b.imdb)||0);
-    return 0;
-  }
-  ["now","soon","stream"].forEach(function(t) { filtered[t] = filtered[t].slice().sort(sorter); });
+  tabSortState[currentTab] = document.getElementById("sort-select").value;
+  ["now","soon","stream"].forEach(function(t) {
+    var v = tabSortState[t];
+    filtered[t] = filtered[t].slice().sort(function(a, b) {
+      if (v === "date_desc") return b.releaseDate > a.releaseDate ? 1 : -1;
+      if (v === "date_asc") return a.releaseDate > b.releaseDate ? 1 : -1;
+      if (v === "tmdb_desc") return (parseFloat(b.voteAverage)||0) - (parseFloat(a.voteAverage)||0);
+      if (v === "tmdb_asc") return (parseFloat(a.voteAverage)||0) - (parseFloat(b.voteAverage)||0);
+      if (v === "imdb_desc") return (parseFloat(b.imdb)||0) - (parseFloat(a.imdb)||0);
+      if (v === "imdb_asc") return (parseFloat(a.imdb)||0) - (parseFloat(b.imdb)||0);
+      return 0;
+    });
+  });
   renderGrids();
 }
 
@@ -704,6 +749,7 @@ function toggleFilter() {
 }
 function switchTab(t) {
   currentTab = t;
+  document.getElementById("sort-select").value = tabSortState[t];
   document.querySelectorAll(".tab-content").forEach(function(el) { el.classList.remove("active"); });
   document.querySelectorAll(".tab-btn").forEach(function(el) { el.classList.remove("active"); });
   document.getElementById("content-" + t).classList.add("active");
