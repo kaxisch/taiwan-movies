@@ -13,34 +13,11 @@ html { background: var(--bg); }
 body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300; overflow-x: hidden; }
 
 /* FLOATING ORBS */
-.orb { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: -1; }
-.orb-1 { width: 520px; height: 520px; background: radial-gradient(circle, rgba(200,130,30,0.30) 0%, transparent 70%); top: -120px; right: -100px; animation: float1 18s ease-in-out infinite; }
-.orb-2 { width: 440px; height: 440px; background: radial-gradient(circle, rgba(20,170,190,0.24) 0%, transparent 70%); bottom: 5%; left: -80px; animation: float2 22s ease-in-out infinite; }
-.orb-3 { width: 320px; height: 320px; background: radial-gradient(circle, rgba(80,50,200,0.16) 0%, transparent 70%); top: 40%; right: 5%; animation: float3 26s ease-in-out infinite; }
-.orb-4 { width: 280px; height: 280px; background: radial-gradient(circle, rgba(210,150,20,0.18) 0%, transparent 70%); bottom: 25%; right: 15%; animation: float4 20s ease-in-out infinite; }
-@keyframes float1 {
-  0%   { transform: translate(0, 0) scale(1); }
-  33%  { transform: translate(-60px, 80px) scale(1.08); }
-  66%  { transform: translate(40px, 40px) scale(0.94); }
-  100% { transform: translate(0, 0) scale(1); }
-}
-@keyframes float2 {
-  0%   { transform: translate(0, 0) scale(1); }
-  33%  { transform: translate(70px, -50px) scale(1.05); }
-  66%  { transform: translate(20px, 60px) scale(0.97); }
-  100% { transform: translate(0, 0) scale(1); }
-}
-@keyframes float3 {
-  0%   { transform: translate(0, 0) scale(1); }
-  50%  { transform: translate(-50px, 80px) scale(1.1); }
-  100% { transform: translate(0, 0) scale(1); }
-}
-@keyframes float4 {
-  0%   { transform: translate(0, 0) scale(1); }
-  40%  { transform: translate(-40px, -60px) scale(1.06); }
-  80%  { transform: translate(30px, 30px) scale(0.95); }
-  100% { transform: translate(0, 0) scale(1); }
-}
+.orb { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: -1; top: 0; left: 0; will-change: transform; }
+.orb-1 { width: 200px; height: 200px; background: radial-gradient(circle, rgba(220,170,20,0.70) 0%, transparent 70%); }
+.orb-2 { width: 170px; height: 170px; background: radial-gradient(circle, rgba(20,100,220,0.70) 0%, transparent 70%); }
+.orb-3 { width: 140px; height: 140px; background: radial-gradient(circle, rgba(30,160,210,0.70) 0%, transparent 70%); }
+.orb-4 { width: 120px; height: 120px; background: radial-gradient(circle, rgba(200,150,10,0.70) 0%, transparent 70%); }
 .material-symbols-outlined { font-family: 'Material Symbols Outlined' !important; font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24; font-weight: normal; font-style: normal; display: inline-block; line-height: 1; text-transform: none; letter-spacing: normal; }
 .glass { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); }
 
@@ -126,37 +103,46 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
 
-#detail-modal { position: fixed; inset: 0; z-index: 60; display: none; }
+#detail-modal { position: fixed; inset: 0; z-index: 60; display: none; background: #0a0a0f; }
 #detail-modal.open { display: block; }
-.modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); }
+.modal-backdrop { display: none; }
 .modal-scroll { position: relative; width: 100%; height: 100%; overflow-y: auto; }
 .modal-inner { position: relative; max-width: 896px; margin: 0 auto; min-height: 100vh; }
-.modal-close { position: fixed; top: 16px; right: 16px; z-index: 70; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 999px; color: rgba(255,255,255,0.6); cursor: pointer; transition: color 0.2s; }
-.modal-close:hover { color: #fff; }
+.modal-close { position: fixed; top: 24px; right: 40px; z-index: 70; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.15); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.35); border-radius: 999px; color: rgba(255,255,255,0.8); cursor: pointer; transition: color 0.2s, background 0.2s; }
+@media(max-width:768px){ .modal-close { top: 16px; right: 16px; } }
+.modal-close:hover { color: #fff; background: rgba(255,255,255,0.25); }
 .modal-hero { position: relative; height: 45vh; min-height: 300px; overflow: hidden; }
 .modal-hero img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
-.modal-hero-grad1 { position: absolute; inset: 0; background: linear-gradient(0deg, #0a0a0f 0%, rgba(10,10,15,0.3) 60%, transparent 100%); }
+.modal-hero-grad1 { position: absolute; inset: 0; background: linear-gradient(0deg, #0a0a0f 0%, rgba(10,10,15,0.7) 35%, transparent 58%); }
 .modal-hero-grad2 { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10,10,15,0.7) 0%, transparent 60%); }
 .modal-hero-info { position: absolute; bottom: 0; left: 0; padding: 24px 32px; }
-.modal-genre-tags { display: flex; gap: 8px; margin-bottom: 8px; }
+.modal-genre-tags { display: flex; gap: 8px; margin-bottom: 10px; }
 .modal-genre-tag { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); padding: 2px 10px; border-radius: 4px; font-size: 10px; letter-spacing: 0.05em; }
 .modal-title { font-size: clamp(24px,4vw,36px); font-weight: 200; color: #fff; margin-bottom: 4px; line-height: 1.2; }
-.modal-subtitle { color: rgba(255,255,255,0.4); font-size: 14px; margin-bottom: 12px; }
-.modal-ratings { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.modal-subtitle { color: rgba(255,255,255,0.65); font-size: 14px; margin-bottom: 0; }
+.modal-info-group { margin-bottom: 20px; }
+.modal-ratings { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.modal-rating-divider { width: 1px; height: 12px; background: rgba(255,255,255,0.3); }
+.modal-rating-item { display: flex; align-items: center; gap: 4px; font-size: 13px; color: rgba(255,255,255,0.5); }
+.modal-rating-item .star { font-size: 13px; color: rgba(255,255,255,0.6); font-variation-settings: 'FILL' 1, 'wght' 200, 'GRAD' 0, 'opsz' 24; }
+.modal-rating-item .val { color: #fff; }
+.btn-trailer { display: inline-flex; align-items: center; gap: 6px; padding: 6px 18px 6px 8px; background: rgba(255,255,255,0.20); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.4); border-radius: 999px; color: #fff; font-size: 14px; font-weight: 400; font-family: 'Manrope', sans-serif; cursor: pointer; transition: background 0.2s; }
+.btn-trailer:hover { background: rgba(255,255,255,0.25); }
 .modal-body { padding: 24px 32px; }
 .modal-body > * + * { margin-top: 32px; }
 .modal-synopsis { color: rgba(255,255,255,0.6); font-size: 14px; line-height: 1.7; }
 .crew-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(12px); border-radius: 16px; padding: 16px; }
 @media(min-width:768px){ .crew-grid { grid-template-columns: repeat(3,1fr); } }
-.crew-name { font-size: 14px; font-weight: 300; color: #fff; }
-.crew-role { font-size: 12px; color: rgba(255,255,255,0.4); }
+.crew-name { font-size: 14px; font-weight: 300; color: #fff; margin-bottom: 4px; }
+.crew-role { font-size: 12px; color: rgba(255,255,255,0.65); }
 .section-label { font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
-.cast-row { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px; }
+.cast-row { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+.cast-row::-webkit-scrollbar { display: none; }
 .cast-card { flex-shrink: 0; width: 80px; text-align: center; }
-.cast-photo { width: 64px; height: 64px; border-radius: 999px; object-fit: cover; margin: 0 auto 4px; display: block; }
-.cast-no-photo { width: 64px; height: 64px; border-radius: 999px; background: var(--glass-bg); border: 1px solid var(--glass-border); margin: 0 auto 4px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); }
-.cast-name { font-size: 11px; color: #fff; font-weight: 300; line-height: 1.3; }
-.cast-char { font-size: 10px; color: rgba(255,255,255,0.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cast-photo { width: 64px; height: 64px; border-radius: 999px; object-fit: cover; margin: 0 auto 8px; display: block; }
+.cast-no-photo { width: 64px; height: 64px; border-radius: 999px; background: var(--glass-bg); border: 1px solid var(--glass-border); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); }
+.cast-name { font-size: 11px; color: #fff; font-weight: 300; line-height: 1.3; margin-bottom: 4px; }
+.cast-char { font-size: 10px; color: rgba(255,255,255,0.65); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .platform-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .platform-tag { display: flex; align-items: center; gap: 6px; background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 6px 12px; border-radius: 8px; }
 .platform-logo { width: 20px; height: 20px; border-radius: 4px; object-fit: cover; }
@@ -164,7 +150,7 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 .meta-panel { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 16px; }
 .meta-row { display: flex; gap: 16px; margin-bottom: 12px; }
 .meta-row:last-child { margin-bottom: 0; }
-.meta-key { font-size: 12px; color: rgba(255,255,255,0.4); width: 80px; flex-shrink: 0; padding-top: 2px; }
+.meta-key { font-size: 12px; color: rgba(255,255,255,0.65); width: 80px; flex-shrink: 0; padding-top: 2px; }
 .meta-val { font-size: 12px; color: #fff; }
 
 #trailer-modal { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; }
@@ -320,7 +306,7 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
   <div class="modal-scroll">
     <div class="modal-inner">
       <button class="modal-close" onclick="closeModal()">
-        <span class="material-symbols-outlined" style="font-size:20px">close</span>
+        <span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24">close</span>
       </button>
       <div id="modal-content"></div>
     </div>
@@ -333,7 +319,7 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
     <button class="trailer-close" onclick="closeTrailer()">
       <span class="material-symbols-outlined" style="font-size:18px">close</span>關閉
     </button>
-    <iframe id="trailer-iframe" src="" allowfullscreen></iframe>
+    <iframe id="trailer-iframe" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin"></iframe>
   </div>
 </div>
 
@@ -780,16 +766,21 @@ function renderModal(movie, detail, imdbRating) {
   var metaHTML = "";
   for (var mr = 0; mr < metaRows.length; mr++) metaHTML += '<div class="meta-row"><span class="meta-key">' + metaRows[mr][0] + '</span><span class="meta-val">' + escHtml(metaRows[mr][1]) + '</span></div>';
   var bdHTML = detail.backdrop ? '<img src="' + detail.backdrop + '" style="width:100%;height:100%;object-fit:cover;opacity:0.6"/>' : '<div style="width:100%;height:100%;background:rgba(255,255,255,0.05)"></div>';
+  var ratingsHTML = '';
+  if (imdbRating || detail.voteAverage) {
+    if (imdbRating) ratingsHTML += '<span class="modal-rating-item"><span class="material-symbols-outlined star">star</span>IMDb <span class="val">' + escHtml(imdbRating) + '</span></span>';
+    if (imdbRating && detail.voteAverage) ratingsHTML += '<span class="modal-rating-divider"></span>';
+    if (detail.voteAverage) ratingsHTML += '<span class="modal-rating-item"><span class="material-symbols-outlined star">star</span>TMDB <span class="val">' + tmdbScore(detail.voteAverage) + '</span></span>';
+  }
   var html = '<div class="fade-in"><div class="modal-hero">' + bdHTML +
     '<div class="modal-hero-grad1"></div><div class="modal-hero-grad2"></div>' +
-    '<div class="modal-hero-info"><div class="modal-genre-tags">' + genreTags + '</div>' +
+    '<div class="modal-hero-info">' +
+    '<div class="modal-info-group"><div class="modal-genre-tags">' + genreTags + '</div>' +
     '<h2 class="modal-title">' + escHtml(movie.titleZh || detail.origTitle || "—") + '</h2>' +
     '<p class="modal-subtitle">' + escHtml(detail.origTitle || "") + (movie.releaseDate ? ' · ' + movie.releaseDate.split('-')[0] : '') + (detail.duration ? ' · ' + detail.duration + '分鐘' : '') + '</p>' +
-    '<div class="modal-ratings">' +
-    (imdbRating ? '<span class="badge-imdb" style="font-size:12px;padding:3px 8px">IMDb <span style="color:rgba(255,255,255,0.7)">' + escHtml(imdbRating) + '</span></span>' : '') +
-    (detail.voteAverage ? '<span class="badge-tmdb" style="font-size:12px;padding:3px 8px">TMDB <span style="color:rgba(255,255,255,0.7)">' + tmdbScore(detail.voteAverage) + '</span></span>' : '') +
     '</div>' +
-    (trailerKey ? '<button class="btn-trailer" onclick="playTrailer(\'' + trailerKey + '\')"><span class="material-symbols-outlined" style="font-size:16px">play_arrow</span>播放預告</button>' : '') +
+    (ratingsHTML ? '<div class="modal-ratings">' + ratingsHTML + '</div>' : '') +
+    (trailerKey ? '<button class="btn-trailer" onclick="playTrailer(\'' + trailerKey + '\')"><span class="material-symbols-outlined" style="font-size:22px">play_arrow</span>播放預告</button>' : '') +
     '</div></div><div class="modal-body">' +
     (detail.synopsis ? '<p class="modal-synopsis">' + escHtml(detail.synopsis) + '</p>' : '') +
     (crewHTML ? '<div class="crew-grid">' + crewHTML + '</div>' : '') +
@@ -800,7 +791,16 @@ function renderModal(movie, detail, imdbRating) {
 }
 
 function closeModal() { document.getElementById("detail-modal").classList.remove("open"); document.body.style.overflow = ""; }
-function playTrailer(key) { document.getElementById("trailer-iframe").src = "https://www.youtube.com/embed/" + key + "?autoplay=1"; document.getElementById("trailer-modal").classList.add("open"); }
+function playTrailer(key) {
+  // file:// origin blocks YouTube embedding on desktop — open in new tab instead
+  var isLocal = location.protocol === "file:";
+  if (isLocal) {
+    window.open("https://www.youtube.com/watch?v=" + key, "_blank");
+  } else {
+    document.getElementById("trailer-iframe").src = "https://www.youtube-nocookie.com/embed/" + key + "?autoplay=1&rel=0";
+    document.getElementById("trailer-modal").classList.add("open");
+  }
+}
 function closeTrailer() { document.getElementById("trailer-iframe").src = ""; document.getElementById("trailer-modal").classList.remove("open"); }
 document.addEventListener("keydown", function(e) { if (e.key === "Escape") { closeModal(); closeTrailer(); } });
 
@@ -857,6 +857,87 @@ function loadData(forceRefresh) {
 
 function refreshData() { loadData(true); }
 loadData(false);
+
+// Floating orb physics
+(function() {
+  var configs = [
+    { cls: 'orb-1', w: 200, h: 200, spd: 1.80 },
+    { cls: 'orb-2', w: 170, h: 170, spd: 1.60 },
+    { cls: 'orb-3', w: 140, h: 140, spd: 2.00 },
+    { cls: 'orb-4', w: 120, h: 120, spd: 1.70 }
+  ];
+  var orbs = [];
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+
+  function getTopBound() {
+    var tabBar = document.getElementById('tab-bar');
+    return (tabBar ? tabBar.offsetHeight : 120) + 76;
+  }
+
+  // Each orb starts in a different zone so they don't cluster together
+  var zones = [
+    { xFn: function(vw, w) { return rand(-w * 0.1, vw * 0.3); },          yFn: function(top, vh, h) { return rand(top, top + (vh - top) * 0.45); } },
+    { xFn: function(vw, w) { return rand(vw * 0.55, vw - w * 0.2); },      yFn: function(top, vh, h) { return rand(top, top + (vh - top) * 0.45); } },
+    { xFn: function(vw, w) { return rand(vw * 0.1, vw * 0.5); },           yFn: function(top, vh, h) { return rand(top + (vh - top) * 0.45, vh - h * 0.2); } },
+    { xFn: function(vw, w) { return rand(vw * 0.4, vw - w * 0.1); },       yFn: function(top, vh, h) { return rand(top + (vh - top) * 0.45, vh - h * 0.2); } }
+  ];
+
+  function init() {
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var top = getTopBound();
+    orbs = configs.map(function(c, i) {
+      var z = zones[i];
+      var x = z.xFn(vw, c.w);
+      var y = z.yFn(top, vh, c.h);
+      var angle = rand(0, Math.PI * 2);
+      var o = {
+        el: document.querySelector('.' + c.cls),
+        w: c.w, h: c.h, spd: c.spd,
+        x: x, y: y,
+        vx: Math.cos(angle) * c.spd,
+        vy: Math.sin(angle) * c.spd
+      };
+      if (o.el) o.el.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
+      return o;
+    });
+  }
+
+  function tick() {
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var topBound = getTopBound();
+    var botBound = vh + 60;
+
+    orbs.forEach(function(o) {
+      o.x += o.vx;
+      o.y += o.vy;
+
+      var xMin = -o.w * 0.3, xMax = vw - o.w * 0.7;
+      if (o.x < xMin) { o.x = xMin; o.vx = Math.abs(o.vx) * 0.9; }
+      if (o.x > xMax) { o.x = xMax; o.vx = -Math.abs(o.vx) * 0.9; }
+      if (o.y < topBound) { o.y = topBound; o.vy = Math.abs(o.vy) * 0.9; }
+      if (o.y > botBound) { o.y = botBound; o.vy = -Math.abs(o.vy) * 0.9; }
+
+      o.vx += (Math.random() - 0.5) * 0.006;
+      o.vy += (Math.random() - 0.5) * 0.006;
+
+      var spd = Math.sqrt(o.vx * o.vx + o.vy * o.vy);
+      if (spd > 2.5)  { o.vx = o.vx / spd * 2.5;  o.vy = o.vy / spd * 2.5;  }
+      if (spd < 0.80) { o.vx = o.vx / spd * 0.80; o.vy = o.vy / spd * 0.80; }
+
+      if (o.el) o.el.style.transform = 'translate(' + Math.round(o.x) + 'px,' + Math.round(o.y) + 'px)';
+    });
+
+    requestAnimationFrame(tick);
+  }
+
+  // DOM is already ready (script at bottom of body) — start immediately
+  init();
+  requestAnimationFrame(tick);
+  window.addEventListener('resize', init);
+})();
 </script>
 </body>
 </html>
