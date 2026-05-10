@@ -13,7 +13,6 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 .material-symbols-outlined { font-family: 'Material Symbols Outlined' !important; font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24; font-weight: normal; font-style: normal; display: inline-block; line-height: 1; text-transform: none; letter-spacing: normal; }
 .glass { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); }
 
-/* NAVBAR — 隨頁面捲走 */
 #navbar { position: relative; z-index: 50; background: rgba(10,10,15,0.95); border-bottom: 1px solid rgba(255,255,255,0.06); }
 .nav-inner { display: flex; justify-content: space-between; align-items: center; padding: 16px 64px; max-width: 1440px; margin: 0 auto; }
 .nav-logo { font-size: 20px; font-weight: 200; letter-spacing: -0.5px; color: #fff; }
@@ -37,7 +36,6 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .spinning { animation: spin 1s linear infinite; display: inline-block; }
 
-/* TAB BAR — sticky 固定在頂端 */
 #tab-bar { position: sticky; top: 0; z-index: 40; background: rgba(10,10,15,0.97); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); }
 .tab-bar-inner { max-width: 1440px; margin: 0 auto; padding: 0 64px; }
 .tabs { display: flex; gap: 32px; }
@@ -72,7 +70,6 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 .close-filter-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
 .filter-panel-bottom { display: flex; align-items: center; justify-content: space-between; }
 
-/* CONTENT */
 .content-area { padding: 40px 64px; max-width: 1440px; margin: 0 auto; }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
@@ -178,7 +175,6 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
 </head>
 <body>
 
-<!-- NAVBAR -->
 <header id="navbar">
   <div class="nav-inner">
     <div class="nav-logo">WatchTonight<span>今晚看什麼</span></div>
@@ -206,7 +202,6 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
   </div>
 </header>
 
-<!-- TAB BAR -->
 <div id="tab-bar">
   <div class="tab-bar-inner">
     <div class="tabs">
@@ -268,7 +263,6 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
   </div>
 </div>
 
-<!-- CONTENT -->
 <div class="content-area">
   <div id="error-banner"></div>
   <div class="tab-content active" id="content-now">
@@ -285,7 +279,6 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
   </div>
 </div>
 
-<!-- DETAIL MODAL -->
 <div id="detail-modal">
   <div class="modal-backdrop" onclick="closeModal()"></div>
   <div class="modal-scroll">
@@ -298,7 +291,6 @@ body { background: var(--bg); color: #fff; min-height: 100vh; font-weight: 300; 
   </div>
 </div>
 
-<!-- TRAILER MODAL -->
 <div id="trailer-modal">
   <div class="trailer-backdrop" onclick="closeTrailer()"></div>
   <div class="trailer-wrap">
@@ -365,6 +357,12 @@ function loadCache() {
 }
 function escHtml(s) {
   return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function scrollToResults() {
+  var target = document.getElementById("content-" + currentTab);
+  if (!target) return;
+  target.scrollIntoView(true);
 }
 
 function tmdbFetch(path, params) {
@@ -524,13 +522,25 @@ function showSkeletons() {
 }
 
 function renderGrids() {
-  ["now","soon","stream"].forEach(function(t) {
-    var html = "";
-    for (var i = 0; i < filtered[t].length; i++) html += cardHTML(filtered[t][i], true);
-    document.getElementById("grid-" + t).innerHTML = html;
-    var empty = document.getElementById("empty-" + t);
-    if (filtered[t].length === 0) empty.classList.add("show"); else empty.classList.remove("show");
-  });
+  var contentArea = document.getElementById("content-" + currentTab);
+  if (contentArea) {
+    contentArea.style.transition = "opacity 0.15s";
+    contentArea.style.opacity = "0";
+  }
+  setTimeout(function() {
+    ["now","soon","stream"].forEach(function(t) {
+      var html = "";
+      for (var i = 0; i < filtered[t].length; i++) html += cardHTML(filtered[t][i], true);
+      document.getElementById("grid-" + t).innerHTML = html;
+      var empty = document.getElementById("empty-" + t);
+      if (filtered[t].length === 0) empty.classList.add("show"); else empty.classList.remove("show");
+    });
+    scrollToResults();
+    if (contentArea) {
+      contentArea.style.transition = "opacity 0.2s";
+      contentArea.style.opacity = "1";
+    }
+  }, 150);
 }
 
 function applyFilters() {
@@ -763,6 +773,18 @@ document.addEventListener("DOMContentLoaded", function() {
   bindSearchInput(document.getElementById("global-search"), "global");
   bindSearchInput(document.getElementById("mobile-search-input"), "global");
 });
+
+function scrollToResults() {
+  var navbar = document.getElementById("navbar");
+  var navH = navbar ? navbar.offsetHeight : 0;
+  if (window.pageYOffset > navH) {
+    try {
+      window.scrollTo({ top: navH, behavior: "smooth" });
+    } catch(e) {
+      window.scrollTo(0, navH);
+    }
+  }
+}
 
 function loadData(forceRefresh) {
   var icon = document.getElementById("refresh-icon");
