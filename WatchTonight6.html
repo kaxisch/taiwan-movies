@@ -240,6 +240,7 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
       <button class="tab-btn active" id="tab-now" onclick="switchTab('now')">現正熱映</button>
       <button class="tab-btn" id="tab-soon" onclick="switchTab('soon')">即將上映</button>
       <button class="tab-btn" id="tab-stream" onclick="switchTab('stream')">串流新上架</button>
+      <span id="movie-count" style="margin-left:0px; color:#888; font-size:13px; align-self:center;"></span>
     </div>
     <div class="filter-row">
       <div class="filter-left-group">
@@ -349,9 +350,11 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 var TMDB_KEY = "2ff61a89bf2684be8b207853cd89db24";
 var OMDB_KEY = "d2e6c0dc";
 var TMDB_BASE = "https://api.themoviedb.org/3";
+var MOTN_KEY = "motn-key-v4-My83nan7gdEaLpMnFUZ5lOqINx7RhoKQ";
+var MOTN_BASE = "https://api.movieofthenight.com/v4";
 var IMG_W = "https://image.tmdb.org/t/p/w500";
 var IMG_BG = "https://image.tmdb.org/t/p/w1280";
-var CACHE_KEY = "watchtonight_v5";
+var CACHE_KEY = "watchtonight_v6";
 var CACHE_TTL = 24 * 60 * 60 * 1000;
 
 var allMovies = { now: [], soon: [], stream: [] };
@@ -406,12 +409,12 @@ function scrollToResults() {
   target.scrollIntoView(true);
 }
 
-function tmdbFetch(path, params) {
+function tmdbFetch(path, params, noRegion) {
   if (!params) params = {};
   var url = new URL(TMDB_BASE + path);
   url.searchParams.set("api_key", TMDB_KEY);
   url.searchParams.set("language", "zh-TW");
-  url.searchParams.set("region", "TW");
+  if (!noRegion) url.searchParams.set("region", "TW");
   var keys = Object.keys(params);
   for (var i = 0; i < keys.length; i++) url.searchParams.set(keys[i], params[keys[i]]);
   return fetch(url.toString()).then(function(r) {
@@ -420,12 +423,12 @@ function tmdbFetch(path, params) {
   });
 }
 
-function fetchPages(path, params, maxPages) {
+function fetchPages(path, params, maxPages, noRegion) {
   if (!maxPages) maxPages = 3;
-  return tmdbFetch(path, Object.assign({}, params, { page: 1 })).then(function(first) {
+  return tmdbFetch(path, Object.assign({}, params, { page: 1 }), noRegion).then(function(first) {
     var total = Math.min(first.total_pages, maxPages);
     var promises = [];
-    for (var i = 2; i <= total; i++) promises.push(tmdbFetch(path, Object.assign({}, params, { page: i })));
+    for (var i = 2; i <= total; i++) promises.push(tmdbFetch(path, Object.assign({}, params, { page: i }), noRegion));
     return Promise.all(promises).then(function(rest) {
       var all = [first].concat(rest);
       var results = [];
@@ -512,20 +515,145 @@ function buildMovie(m, detail, imdb) {
   };
 }
 
+var BLOCKED_LANGS = ["ind", "hin", "tam", "tel", "msa"];
+var THIRTY_DAYS_AGO = Date.now() / 1000 - 30 * 24 * 60 * 60;
+
+function fetchStreamingNew() {
+  var params = new URLSearchParams({
+    country: "sg",
+    change_type: "new",
+    item_type: "show",
+    show_type: "movie",
+    order_direction: "desc"
+  });
+  var url = MOTN_BASE + "/changes?" + params.toString();
+  return fetch(url, { headers: { "X-API-Key": MOTN_KEY } }).then(function(r) {
+    if (!r.ok) throw new Error("MOTN " + r.status);
+    return r.json();
+  }).then(function(data) {
+    var shows = data.shows || {};
+    var changes = data.changes || [];
+    var seen = {};
+    var results = [];
+    for (var i = 0; i < changes.length; i++) {
+      var ch = changes[i];
+      if (ch.streamingOptionType !== "subscription") continue;
+      if (ch.timestamp < THIRTY_DAYS_AGO) continue;
+      var show = shows[ch.showId];
+      if (!show) continue;
+      if (seen[ch.showId]) continue;
+      if (show.releaseYear < 2020) continue;
+      var lang = show.originalLanguage || "";
+      if (BLOCKED_LANGS.indexOf(lang) !== -1) continue;
+      seen[ch.showId] = true;
+      results.push({ motnShow: show, change: ch });
+    }
+    results.sort(function(a, b) { return b.change.timestamp - a.change.timestamp; });
+    return results.slice(0, 20);
+  }).catch(function(e) {
+    console.warn("MOTN API 失敗：" + e.message);
+    return [];
+  });
+}
+
+function motnToMovie(item) {
+  var show = item.motnShow;
+  var ch = item.change;
+  var tmdbId = (show.tmdbId && typeof show.tmdbId === "string") ? parseInt(show.tmdbId.replace("movie/", "")) : null;
+  var title = (show.title || "").replace(/^"|"$/g, "");
+  var origTitle = (show.originalTitle || show.title || "").replace(/^"|"$/g, "");
+  var titleZh = title || origTitle;
+  var titleEn = origTitle || title;
+  var streamingOptions = show.streamingOptions && show.streamingOptions["sg"] ? show.streamingOptions["sg"] : [];
+  var platforms = [];
+  var seen = {};
+  for (var i = 0; i < streamingOptions.length; i++) {
+    var opt = streamingOptions[i];
+    if (opt.type !== "subscription") continue;
+    if (!opt.service || seen[opt.service.id]) continue;
+    seen[opt.service.id] = true;
+    platforms.push({ name: opt.service.name, logo: null });
+  }
+  var releaseDate = "";
+  if (ch.timestamp) {
+    var d = new Date(ch.timestamp * 1000);
+    releaseDate = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+  return {
+    id: tmdbId || Math.floor(Math.random() * 1000000),
+    titleZh: title || origTitle,
+    titleEn: origTitle || title,
+    releaseDate: releaseDate,
+    poster: show.imageSet && show.imageSet.verticalPoster ? (show.imageSet.verticalPoster.w360 || show.imageSet.verticalPoster.w240 || "") : "",
+    backdrop: show.imageSet && show.imageSet.horizontalBackdrop ? (show.imageSet.horizontalBackdrop.w1080 || "") : "",
+    genre: show.genres ? show.genres.map(function(g){ return g.name; }) : [],
+    duration: show.runtime || 0,
+    synopsis: show.overview || "",
+    voteAverage: show.rating ? (show.rating / 10).toFixed(1) : "",
+    imdb: "",
+    trailerKey: null,
+    cast: [], crew: [], budget: 0, revenue: 0,
+    status: "Released",
+    origLang: show.originalLanguage || "",
+    origTitle: show.originalTitle || show.title || "",
+    platforms: platforms,
+    popularity: 0,
+    tmdbId: tmdbId
+  };
+}
+
 function fetchAll() {
   return Promise.all([
-    fetchPages("/discover/movie", { "release_date.gte": daysAgo(30), "release_date.lte": today(), sort_by: "popularity.desc", with_release_type: "3|2" }, 3),
+    fetchPages("/discover/movie", { "release_date.gte": daysAgo(30), "release_date.lte": today(), sort_by: "popularity.desc", with_release_type: "3|2", region: "TW" }, 3),
+    fetchPages("/discover/movie", { "release_date.gte": daysAgo(30), "release_date.lte": today(), sort_by: "popularity.desc", with_release_type: "2|3", "vote_count.gte": 20, watch_region: "TW", without_watch_providers: "8|119|350" }, 2, true),
     fetchPages("/discover/movie", { "release_date.gte": daysLater(1), "release_date.lte": daysLater(180), sort_by: "release_date.asc", with_release_type: "3|2" }, 3),
-    fetchPages("/discover/movie", { "release_date.gte": daysAgo(30), "release_date.lte": today(), sort_by: "popularity.desc", watch_region: "TW", with_watch_monetization_types: "flatrate", "vote_count.gte": 50 }, 2)
+    fetchStreamingNew(),
+    fetchPages("/discover/movie", { "release_date.gte": daysAgo(60), "release_date.lte": today(), sort_by: "popularity.desc", watch_region: "TW", with_watch_monetization_types: "flatrate", "vote_count.gte": 20 }, 2)
   ]).then(function(results) {
-    var np = dedup(results[0]).slice(0, 30);
-    var cs = dedup(results[1]).slice(0, 40);
+    var npA = dedup(results[0]);
+    var npAIds = {};
+    npA.forEach(function(m) { npAIds[m.id] = true; });
+    var npB = results[1].filter(function(m) { return !npAIds[m.id]; }).slice(0, 15);
+    var np = dedup(npA.concat(npB)).slice(0, 45);
+    var cs = dedup(results[2]).slice(0, 40);
+    var motnResults = results[3];
+    var tmdbStream = results[4];
     var npIds = {};
     np.forEach(function(m) { npIds[m.id] = true; });
-    var st = dedup(results[2]).filter(function(m) { return !npIds[m.id]; }).slice(0, 30);
-    return Promise.all([enrichList(np, true), enrichList(cs, false), enrichList(st, true)]).then(function(e) {
-      return { now: e[0], soon: e[1], stream: e[2] };
-    });
+    var stMotn = motnResults
+      .map(function(item) { return motnToMovie(item); })
+      .filter(function(m) { return !npIds[m.id]; });
+    var motnIds = {};
+    stMotn.forEach(function(m) { if (m.tmdbId) motnIds[m.tmdbId] = true; });
+    var stTmdb = tmdbStream.filter(function(m) { return !npIds[m.id] && !motnIds[m.id]; }).slice(0, 15);
+  
+function enrichMotn(movies) {
+  return Promise.all(movies.map(function(m) {
+    if (!m.tmdbId) return Promise.resolve(m);
+    return tmdbFetch("/movie/" + m.tmdbId, { append_to_response: "credits" }).then(function(d) {
+      if (d.title) m.titleZh = d.title.replace(/^"|"$/g, "");
+      if (d.overview) m.synopsis = d.overview;
+      if (d.runtime) m.duration = d.runtime;
+      if (d.vote_average) m.voteAverage = d.vote_average.toFixed(1);
+      if (d.poster_path) m.poster = IMG_W + d.poster_path;
+      if (d.backdrop_path) m.backdrop = IMG_BG + d.backdrop_path;
+      if (d.genres) m.genre = d.genres.map(function(g){ return toTrad(g.name); });
+      return getExternalIds(m.tmdbId).then(function(ext) {
+        if (!ext.imdb_id) return m;
+        return getImdb(ext.imdb_id).then(function(rating) {
+          m.imdb = rating || "";
+          return m;
+        });
+      });
+    }).catch(function() { return m; });
+  }));
+}
+
+return Promise.all([enrichList(np, true), enrichList(cs, false), enrichMotn(stMotn), enrichList(stTmdb, true)]).then(function(e) {
+  var nowFiltered = e[0].filter(function(m) { return (!m.platforms || m.platforms.length === 0) && m.duration >= 70; });
+  var stream = e[2].concat(e[3]).slice(0, 30);
+  return { now: nowFiltered, soon: e[1], stream: stream };
+});
   });
 }
 
@@ -583,6 +711,8 @@ function renderGrids() {
       if (filtered[t].length === 0) empty.classList.add("show"); else empty.classList.remove("show");
     });
     scrollToResults();
+    var countEl = document.getElementById("movie-count");
+    if (countEl && filtered) countEl.textContent = (filtered[currentTab] ? filtered[currentTab].length : 0) + " 部";
     if (contentArea) {
       contentArea.style.transition = "opacity 0.2s";
       contentArea.style.opacity = "1";
@@ -756,6 +886,9 @@ function switchTab(t) {
   document.getElementById("tab-" + t).classList.add("active");
   var panel = document.getElementById("filter-panel");
   if (panel.style.display === "block") document.getElementById("stream-platform-filter").style.display = t === "stream" ? "block" : "none";
+  // 更新計數
+  var countEl = document.getElementById("movie-count");
+  if (countEl && filtered) countEl.textContent = (filtered[t] ? filtered[t].length : 0) + " 部";
 }
 
 function openModal(id) {
