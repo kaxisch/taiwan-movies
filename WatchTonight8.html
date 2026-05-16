@@ -486,25 +486,17 @@ function dedup(arr) {
   return result;
 }
 
-function enrichList(list, needImdb) {
-  if (needImdb === undefined) needImdb = true;
-  return Promise.all(list.map(function(m) { return getBasicDetail(m.id); })).then(function(details) {
-    if (!needImdb) return list.map(function(m, i) { return buildMovie(m, details[i], ""); });
-    return Promise.all(details.map(function(d) { return getImdb(d.imdbId); })).then(function(imdbRatings) {
-      return list.map(function(m, i) { return buildMovie(m, details[i], imdbRatings[i]); });
-    });
-  });
-}
-
-function buildMovie(m, detail, imdb) {
+function buildBasicMovie(m) {
   return {
     id: m.id, titleZh: m.title || "", titleEn: m.original_title || "",
-    releaseDate: m.release_date || "", poster: detail.poster || null, backdrop: detail.backdrop || null,
-    genre: detail.genres || [], duration: detail.duration || "", synopsis: detail.synopsis || "",
-    voteAverage: detail.voteAverage || "", imdb: imdb || "", trailerKey: detail.trailerKey || null,
-    cast: detail.cast || [], crew: detail.crew || [], budget: detail.budget || 0, revenue: detail.revenue || 0,
-    status: detail.status || "", origLang: detail.origLang || "", origTitle: detail.origTitle || "",
-    platforms: detail.platforms || [], popularity: m.popularity || 0, imdbId: detail.imdbId || "",
+    releaseDate: m.release_date || "",
+    poster: m.poster_path ? IMG_W + m.poster_path : null,
+    backdrop: m.backdrop_path ? IMG_BG + m.backdrop_path : null,
+    voteAverage: m.vote_average ? m.vote_average.toFixed(1) : "",
+    genre: [], duration: 0, synopsis: "", imdb: "", trailerKey: null,
+    cast: [], crew: [], budget: 0, revenue: 0, status: "",
+    origLang: m.original_language || "", origTitle: m.original_title || "",
+    platforms: [], popularity: m.popularity || 0, imdbId: ""
   };
 }
 
@@ -520,7 +512,10 @@ function fetchStreamingNew() {
     order_direction: "desc"
   });
   var url = MOTN_BASE + "/changes?" + params.toString();
-  return fetch(url, { headers: { "X-API-Key": MOTN_KEY } }).then(function(r) {
+  var controller = new AbortController();
+  var tid = setTimeout(function() { controller.abort(); }, 8000);
+  return fetch(url, { headers: { "X-API-Key": MOTN_KEY }, signal: controller.signal }).then(function(r) {
+    clearTimeout(tid);
     if (!r.ok) throw new Error("MOTN " + r.status);
     return r.json();
   }).then(function(data) {
@@ -544,6 +539,7 @@ function fetchStreamingNew() {
     results.sort(function(a, b) { return b.change.timestamp - a.change.timestamp; });
     return results.slice(0, 20);
   }).catch(function(e) {
+    clearTimeout(tid);
     console.warn("MOTN API 失敗：" + e.message);
     return [];
   });
@@ -593,31 +589,12 @@ function motnToMovie(item) {
   };
 }
 
-function enrichMotn(movies) {
-  return Promise.all(movies.map(function(m) {
-    if (!m.tmdbId) return Promise.resolve(m);
-    return tmdbFetch("/movie/" + m.tmdbId, { append_to_response: "credits" }).then(function(d) {
-      if (d.title) m.titleZh = d.title.replace(/^"|"$/g, "");
-      if (d.overview) m.synopsis = d.overview;
-      if (d.runtime) m.duration = d.runtime;
-      if (d.vote_average) m.voteAverage = d.vote_average.toFixed(1);
-      if (d.poster_path) m.poster = IMG_W + d.poster_path;
-      if (d.backdrop_path) m.backdrop = IMG_BG + d.backdrop_path;
-      if (d.genres) m.genre = d.genres.map(function(g){ return toTrad(g.name); });
-      return getImdb(d.imdb_id || "").then(function(rating) {
-  m.imdb = rating || "";
-  return m;
-});
-    }).catch(function() { return m; });
-  }));
-}
-
-function fetchAll() {
+function fetchBasicLists() {
+  var motnPromise = fetchStreamingNew(); // 立刻開始，但不阻塞
   return Promise.all([
     fetchPages("/discover/movie", { "release_date.gte": daysAgo(30), "release_date.lte": today(), sort_by: "popularity.desc", with_release_type: "3|2", region: "TW" }, 3),
     fetchPages("/discover/movie", { "release_date.gte": daysAgo(30), "release_date.lte": today(), sort_by: "popularity.desc", with_release_type: "2|3", "vote_count.gte": 20, watch_region: "TW", without_watch_providers: "8|119|350" }, 2, true),
     fetchPages("/discover/movie", { "release_date.gte": daysLater(1), "release_date.lte": daysLater(180), sort_by: "release_date.asc", with_release_type: "3|2" }, 3),
-    fetchStreamingNew(),
     fetchPages("/discover/movie", { "release_date.gte": daysAgo(60), "release_date.lte": today(), sort_by: "popularity.desc", watch_region: "TW", with_watch_monetization_types: "flatrate", "vote_count.gte": 20 }, 2)
   ]).then(function(results) {
     var npA = dedup(results[0]);
@@ -626,22 +603,117 @@ function fetchAll() {
     var npB = results[1].filter(function(m) { return !npAIds[m.id]; }).slice(0, 15);
     var np = dedup(npA.concat(npB)).slice(0, 45);
     var cs = dedup(results[2]).slice(0, 40);
-    var motnResults = results[3];
-    var tmdbStream = results[4];
+    var tmdbStream = results[3];
     var npIds = {};
     np.forEach(function(m) { npIds[m.id] = true; });
-    var stMotn = motnResults
-      .map(function(item) { return motnToMovie(item); })
-      .filter(function(m) { return !npIds[m.id]; });
-    var motnIds = {};
-    stMotn.forEach(function(m) { if (m.tmdbId) motnIds[m.tmdbId] = true; });
-    var stTmdb = tmdbStream.filter(function(m) { return !npIds[m.id] && !motnIds[m.id]; }).slice(0, 15);
+    var stTmdb = tmdbStream.filter(function(m) { return !npIds[m.id]; }).slice(0, 15);
+    return {
+      now: np.map(buildBasicMovie),
+      soon: cs.map(buildBasicMovie),
+      stream: stTmdb.map(buildBasicMovie),
+      _np: np, _cs: cs, _stMotn: [], _stTmdb: stTmdb,
+      _motnPromise: motnPromise
+    };
+  });
+}
 
-    return Promise.all([enrichList(np, false), enrichList(cs, false), enrichMotn(stMotn), enrichList(stTmdb, false)]).then(function(e) {
-      var nowFiltered = e[0].filter(function(m) { return (!m.platforms || m.platforms.length === 0) && m.duration >= 70; });
-      var stream = e[2].concat(e[3]).slice(0, 30);
-      return { now: nowFiltered, soon: e[1], stream: stream };
+function enrichBackground(rawData, skipNowFilter) {
+  var nowIds = {}; allMovies.now.forEach(function(m) { nowIds[m.id] = true; });
+  var soonIds = {}; allMovies.soon.forEach(function(m) { soonIds[m.id] = true; });
+  var streamIds = {}; allMovies.stream.forEach(function(m) { streamIds[m.id] = true; });
+  var npToEnrich = rawData._np.filter(function(r) { return nowIds[r.id]; });
+  var csToEnrich = rawData._cs.filter(function(r) { return soonIds[r.id]; });
+  var stMotnToEnrich = rawData._stMotn.filter(function(m) { return m.tmdbId && streamIds[m.id]; });
+  var stTmdbToEnrich = rawData._stTmdb.filter(function(r) { return streamIds[r.id]; });
+  var total = npToEnrich.length + csToEnrich.length + stMotnToEnrich.length + stTmdbToEnrich.length;
+  if (total === 0) { buildGenreFilters(); buildPlatformFilters(); saveCache(allMovies); return; }
+  var done = 0;
+
+  function findMovie(id) {
+    var found = null;
+    ["now","soon","stream"].forEach(function(t) {
+      for (var i = 0; i < allMovies[t].length; i++) { if (allMovies[t][i].id === id) { found = allMovies[t][i]; break; } }
     });
+    return found;
+  }
+  function updateCardGenre(id, genre) {
+    var el = document.querySelector('#card-' + id + ' .card-hover-genre');
+    if (el) el.textContent = genre.slice(0, 2).join(' / ');
+  }
+  function onEnrichDone() {
+    done++;
+    if (done < total) return;
+    if (!skipNowFilter) {
+      var validNowIds = {};
+      allMovies.now = allMovies.now.filter(function(m) {
+        var pass = (!m.platforms || m.platforms.length === 0) && (m.duration === 0 || m.duration >= 70);
+        if (pass) validNowIds[m.id] = true;
+        return pass;
+      });
+      filtered.now = filtered.now.filter(function(m) { return validNowIds[m.id]; });
+      document.querySelectorAll('#grid-now .movie-card').forEach(function(el) {
+        if (!validNowIds[el.id.replace('card-', '')]) {
+          el.style.transition = 'opacity 0.3s'; el.style.opacity = '0';
+          setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 300);
+        }
+      });
+      var countEl = document.getElementById("movie-count");
+      if (countEl && currentTab === "now") countEl.textContent = filtered.now.length + " 部";
+    }
+    buildGenreFilters(); buildPlatformFilters(); saveCache(allMovies);
+    fetchImdbInBackground(allMovies.now); fetchImdbInBackground(allMovies.stream);
+  }
+
+  npToEnrich.concat(csToEnrich).forEach(function(raw) {
+    getBasicDetail(raw.id).then(function(detail) {
+      var movie = findMovie(raw.id);
+      if (movie) {
+        movie.genre = detail.genres || []; movie.duration = detail.duration || 0;
+        movie.synopsis = detail.synopsis || ""; movie.platforms = detail.platforms || [];
+        movie.imdbId = detail.imdbId || "";
+        if (detail.voteAverage) movie.voteAverage = detail.voteAverage;
+        if (detail.poster && !movie.poster) movie.poster = detail.poster;
+        if (detail.backdrop && !movie.backdrop) movie.backdrop = detail.backdrop;
+        updateCardGenre(movie.id, movie.genre);
+      }
+    }).catch(function() {}).then(onEnrichDone);
+  });
+
+  stMotnToEnrich.forEach(function(motnMovie) {
+    tmdbFetch("/movie/" + motnMovie.tmdbId, { append_to_response: "credits" }).then(function(d) {
+      var movie = findMovie(motnMovie.id);
+      if (movie) {
+        if (d.title) { movie.titleZh = d.title.replace(/^"|"$/g, ""); var tEl = document.querySelector('#card-' + movie.id + ' .card-title'); if (tEl) tEl.textContent = movie.titleZh; }
+        if (d.overview) movie.synopsis = d.overview;
+        if (d.runtime) movie.duration = d.runtime;
+        if (d.vote_average) movie.voteAverage = d.vote_average.toFixed(1);
+        if (d.poster_path) { movie.poster = IMG_W + d.poster_path; var iEl = document.querySelector('#card-' + movie.id + ' img'); if (iEl) iEl.src = movie.poster; }
+        if (d.backdrop_path) movie.backdrop = IMG_BG + d.backdrop_path;
+        if (d.genres) movie.genre = d.genres.map(function(g) { return toTrad(g.name); });
+        movie.imdbId = d.imdb_id || "";
+        updateCardGenre(movie.id, movie.genre);
+        if (d.imdb_id) getImdb(d.imdb_id).then(function(rating) {
+          movie.imdb = rating || "";
+          var el = document.getElementById("imdb-" + movie.id);
+          if (el && rating) { el.querySelector("span").textContent = rating; el.style.display = ""; }
+        });
+      }
+    }).catch(function() {}).then(onEnrichDone);
+  });
+
+  stTmdbToEnrich.forEach(function(raw) {
+    getBasicDetail(raw.id).then(function(detail) {
+      var movie = findMovie(raw.id);
+      if (movie) {
+        movie.genre = detail.genres || []; movie.duration = detail.duration || 0;
+        movie.synopsis = detail.synopsis || ""; movie.platforms = detail.platforms || [];
+        movie.imdbId = detail.imdbId || "";
+        if (detail.voteAverage) movie.voteAverage = detail.voteAverage;
+        updateCardGenre(movie.id, movie.genre);
+        var platEl = document.querySelector('#card-' + movie.id + ' .card-platforms');
+        if (platEl) platEl.textContent = movie.platforms.map(function(p) { return p.name; }).join(' · ');
+      }
+    }).catch(function() {}).then(onEnrichDone);
   });
 }
 
@@ -659,12 +731,12 @@ function cardHTML(m, showRatings, showPlatforms) {
   }
   metaHTML += '</div>';
   var platformsHTML = '';
-  if (showPlatforms && m.platforms && m.platforms.length > 0) {
+  if (showPlatforms) {
     var names = [];
-    for (var i = 0; i < m.platforms.length; i++) names.push(m.platforms[i].name);
+    if (m.platforms) for (var i = 0; i < m.platforms.length; i++) names.push(m.platforms[i].name);
     platformsHTML = '<p class="card-platforms">' + escHtml(names.join(' · ')) + '</p>';
   }
-  return '<div class="movie-card fade-in" onclick="openModal(' + m.id + ')">' +
+  return '<div class="movie-card fade-in" id="card-' + m.id + '" onclick="openModal(' + m.id + ')">' +
     '<div class="card-img-wrap">' + imgHTML +
     '<div class="card-hover-overlay"><span class="card-hover-genre">' + escHtml(m.genre.slice(0,2).join(' / ')) + '</span></div></div>' +
     '<p class="card-title">' + escHtml(m.titleZh) + '</p>' + titleEn + metaHTML + platformsHTML + '</div>';
@@ -959,15 +1031,18 @@ function scrollToResults() {
 }
 
 function fetchImdbInBackground(movies) {
+  var pending = movies.length;
+  if (pending === 0) return;
   movies.forEach(function(m) {
-    if (!m.id) return;
-    getImdb(m.imdbId || "").then(function(rating) {
-      if (!rating) return;
-      m.imdb = rating;
-      var el = document.getElementById("imdb-" + m.id);
-      if (!el) return;
-      el.querySelector("span").textContent = rating;
-      el.style.display = "";
+    if (!m.id || !m.imdbId || m.imdb) { pending--; if (pending === 0) saveCache(allMovies); return; }
+    getImdb(m.imdbId).then(function(rating) {
+      if (rating) {
+        m.imdb = rating;
+        var el = document.getElementById("imdb-" + m.id);
+        if (el) { el.querySelector("span").textContent = rating; el.style.display = ""; }
+      }
+      pending--;
+      if (pending === 0) saveCache(allMovies);
     });
   });
 }
@@ -983,21 +1058,42 @@ function loadData(forceRefresh) {
       allMovies = cached;
       filtered = { now: cached.now.slice(), soon: cached.soon.slice(), stream: cached.stream.slice() };
       sortMovies();
-      buildGenreFilters();
-      buildPlatformFilters();
+      setTimeout(function() {
+        ["now","stream"].forEach(function(t) {
+          allMovies[t].forEach(function(m) {
+            if (!m.imdb) return;
+            var el = document.getElementById("imdb-" + m.id);
+            if (!el) return;
+            el.querySelector("span").textContent = m.imdb;
+            el.style.display = "";
+          });
+        });
+      }, 300);
+      buildGenreFilters(); buildPlatformFilters();
       return;
     }
   }
   icon.classList.add("spinning"); btn.disabled = true; showSkeletons();
-  fetchAll().then(function(data) {
-    allMovies = data;
+  fetchBasicLists().then(function(data) {
+    allMovies = { now: data.now, soon: data.soon, stream: data.stream };
     filtered = { now: data.now.slice(), soon: data.soon.slice(), stream: data.stream.slice() };
-    saveCache(data); sortMovies(); buildGenreFilters(); buildPlatformFilters();
-    setTimeout(function() {
-      fetchImdbInBackground(data.now);
-      fetchImdbInBackground(data.stream);
-    }, 300);
+    sortMovies(); buildGenreFilters(); buildPlatformFilters();
+    icon.classList.remove("spinning"); btn.disabled = false;
+    enrichBackground(data);
+    // MOTN 跑完後再插入串流 tab
+    data._motnPromise.then(function(motnResults) {
+      if (!motnResults || motnResults.length === 0) return;
+      var npIds = {}; allMovies.now.forEach(function(m) { npIds[m.id] = true; });
+      var existIds = {}; allMovies.stream.forEach(function(m) { existIds[m.id] = true; });
+      var stMotn = motnResults.map(motnToMovie).filter(function(m) { return !npIds[m.id] && !existIds[m.id]; });
+      if (stMotn.length === 0) return;
+      allMovies.stream = stMotn.concat(allMovies.stream).slice(0, 30);
+      applyFilters();
+      buildGenreFilters(); buildPlatformFilters();
+      enrichBackground({ _np: [], _cs: [], _stMotn: stMotn, _stTmdb: [] }, true);
+    });
   }).catch(function(e) {
+    icon.classList.remove("spinning"); btn.disabled = false;
     errBanner.textContent = "⚠️ 資料載入失敗：" + e.message;
     errBanner.classList.add("show");
     var cached = loadCache();
@@ -1006,7 +1102,7 @@ function loadData(forceRefresh) {
       filtered = { now: cached.now.slice(), soon: cached.soon.slice(), stream: cached.stream.slice() };
       renderGrids();
     }
-  }).then(function() { icon.classList.remove("spinning"); btn.disabled = false; });
+  });
 }
 
 function refreshData() { loadData(true); }
