@@ -50,7 +50,9 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 .search-clear-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255,255,255,0.35); cursor: pointer; display: none; padding: 0; line-height: 1; transition: color 0.2s; }
 .search-clear-btn:hover { color: rgba(255,255,255,0.7); }
 .search-clear-btn.visible { display: flex; }
-.sort-icon-label { display: flex; align-items: center; color: rgba(255,255,255,0.5); flex-shrink: 0; pointer-events: none; margin-left: 12px; }
+.sort-wrap { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; cursor: pointer; transition: background 0.2s, color 0.2s; color: rgba(255,255,255,0.5); margin-left: 12px; flex-shrink: 0; }
+.sort-wrap:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.sort-wrap:hover .sort-select { color: #fff; }
 .sort-select { background: transparent; border: none; font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.8); cursor: pointer; outline: none; font-family: 'Manrope', sans-serif; appearance: none; -webkit-appearance: none; }
 .sort-select option { background: #1a1a2e; }
 .active-filters-display { max-width: 240px; overflow: hidden; display: flex; align-items: center; }
@@ -221,19 +223,21 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
           <input id="tab-search" class="tab-search" type="text" placeholder="搜尋電影..."/>
           <button class="search-clear-btn" id="tab-search-clear" onclick="clearSearch()"><span class="material-symbols-outlined" style="font-size:18px">cancel</span></button>
         </div>
-        <span class="material-symbols-outlined sort-icon-label" style="font-size:20px">sort</span>
-        <select id="sort-select" class="sort-select" onchange="sortMovies()">
-          <option value="date_desc">上映日期 ↓</option>
-          <option value="date_asc">上映日期 ↑</option>
-          <option value="imdb_desc">IMDb ↓</option>
-          <option value="imdb_asc">IMDb ↑</option>
-          <option value="tmdb_desc">TMDB ↓</option>
-          <option value="tmdb_asc">TMDB ↑</option>
-        </select>
+        <div class="sort-wrap">
+          <span class="material-symbols-outlined" style="font-size:20px">sort</span>
+          <select id="sort-select" class="sort-select" onchange="sortMovies()">
+            <option value="date_desc">上映日期 ↓</option>
+            <option value="date_asc">上映日期 ↑</option>
+            <option value="imdb_desc">IMDb ↓</option>
+            <option value="imdb_asc">IMDb ↑</option>
+            <option value="tmdb_desc">TMDB ↓</option>
+            <option value="tmdb_asc">TMDB ↑</option>
+          </select>
+        </div>
       </div>
       <div class="filter-right-group">
         <div class="divider-v filter-desktop-divider"></div>
-        <button class="filter-btn" onclick="toggleFilter()">
+        <button class="filter-btn" onclick="toggleFilter(this)">
           <span class="material-symbols-outlined" style="font-size:16px">tune</span>篩選
         </button>
         <div class="active-filters-display">
@@ -925,11 +929,12 @@ function clearFilters() {
   document.querySelectorAll(".filter-tag").forEach(function(btn) { btn.classList.remove("active"); });
   applyFilters();
 }
-function toggleFilter() {
+function toggleFilter(btn) {
   var panel = document.getElementById("filter-panel");
   var sf = document.getElementById("stream-platform-filter");
   panel.style.display = (panel.style.display === "block") ? "none" : "block";
   sf.style.display = (currentTab === "stream" && panel.style.display === "block") ? "block" : "none";
+  if (btn) btn.blur();
 }
 function switchTab(t) {
   currentTab = t;
