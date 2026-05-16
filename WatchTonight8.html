@@ -51,8 +51,6 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 .search-clear-btn:hover { color: rgba(255,255,255,0.7); }
 .search-clear-btn.visible { display: flex; }
 .sort-wrap { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; cursor: pointer; transition: background 0.2s, color 0.2s; color: rgba(255,255,255,0.5); margin-left: 12px; flex-shrink: 0; }
-.sort-wrap:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
-.sort-wrap:hover .sort-select { color: #fff; }
 .sort-select { background: transparent; border: none; font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.8); cursor: pointer; outline: none; font-family: 'Manrope', sans-serif; appearance: none; -webkit-appearance: none; }
 .sort-select option { background: #1a1a2e; }
 .active-filters-display { max-width: 240px; overflow: hidden; display: flex; align-items: center; }
@@ -62,7 +60,6 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 .clear-active-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
 .divider-v { width: 1px; height: 16px; background: rgba(255,255,255,0.1); }
 .filter-btn { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: transparent; border: none; font-size: 14px; color: rgba(255,255,255,0.6); cursor: pointer; border-radius: 8px; transition: background 0.2s, color 0.2s; font-family: 'Manrope', sans-serif; }
-.filter-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
 #filter-panel { display: none; padding-bottom: 16px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 16px; }
 .filter-groups { display: flex; flex-wrap: wrap; gap: 24px; margin-bottom: 16px; }
 .filter-group-label { font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
@@ -170,6 +167,11 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .fade-in { animation: fadeIn 0.4s ease forwards; }
 
+@media (hover: hover) {
+  .filter-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .sort-wrap:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+  .sort-wrap:hover .sort-select { color: #fff; }
+}
 @media(max-width:768px){
   .nav-inner { padding: 14px 20px; }
   .tab-bar-inner { padding: 0 20px; }
