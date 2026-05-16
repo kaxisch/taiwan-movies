@@ -51,7 +51,7 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 .search-clear-btn:hover { color: rgba(255,255,255,0.7); }
 .search-clear-btn.visible { display: flex; }
 .sort-icon-label { display: flex; align-items: center; color: rgba(255,255,255,0.5); flex-shrink: 0; pointer-events: none; margin-left: 12px; }
-.sort-select { background: transparent; border: none; font-size: 13px; font-weight: 300; color: rgba(255,255,255,0.8); cursor: pointer; outline: none; font-family: 'Manrope', sans-serif; appearance: none; -webkit-appearance: none; }
+.sort-select { background: transparent; border: none; font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.8); cursor: pointer; outline: none; font-family: 'Manrope', sans-serif; appearance: none; -webkit-appearance: none; }
 .sort-select option { background: #1a1a2e; }
 .active-filters-display { max-width: 240px; overflow: hidden; display: flex; align-items: center; }
 .active-filters-text { font-size: 12px; color: rgba(255,255,255,0.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; flex: 1; min-width: 0; }
@@ -177,7 +177,7 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
   .filter-left-group { width: 100%; }
   .filter-right-group { width: 100%; }
   .tab-search-wrap { flex: 1; min-width: 0; max-width: 50%; }
-  .tab-search { font-size: 16px; width: 100%; }
+  .tab-search { font-size: 14px; width: 100%; }
   .filter-desktop-divider { display: none; }
 }
 @media(max-width:430px){
@@ -320,8 +320,9 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 
 <script>
 var TMDB_KEY = "2ff61a89bf2684be8b207853cd89db24";
-var OMDB_KEYS = ["5f9393e9"];
+var OMDB_KEYS = ["5f9393e9", "d2e6c0dc"];
 var omdbKeyIndex = 0;
+var omdbExhausted = {};
 var TMDB_BASE = "https://api.themoviedb.org/3";
 var MOTN_KEY = "motn-key-v4-My83nan7gdEaLpMnFUZ5lOqINx7RhoKQ";
 var MOTN_BASE = "https://api.movieofthenight.com/v4";
@@ -470,12 +471,24 @@ function getBasicDetail(id) {
 
 function getImdb(imdbId) {
   if (!imdbId) return Promise.resolve("");
-  var key = OMDB_KEYS[omdbKeyIndex % OMDB_KEYS.length];
+  var startIdx = omdbKeyIndex % OMDB_KEYS.length;
   omdbKeyIndex++;
-  return fetch("https://www.omdbapi.com/?i=" + imdbId + "&apikey=" + key)
-    .then(function(r) { return r.json(); })
-    .then(function(d) { return (d.imdbRating && d.imdbRating !== "N/A") ? d.imdbRating : ""; })
-    .catch(function() { return ""; });
+  function tryKey(attempt) {
+    if (attempt >= OMDB_KEYS.length) return Promise.resolve("");
+    var key = OMDB_KEYS[(startIdx + attempt) % OMDB_KEYS.length];
+    if (omdbExhausted[key]) return tryKey(attempt + 1);
+    return fetch("https://www.omdbapi.com/?i=" + imdbId + "&apikey=" + key)
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.Response === "False" && d.Error && d.Error.toLowerCase().indexOf("limit") !== -1) {
+          omdbExhausted[key] = true;
+          return tryKey(attempt + 1);
+        }
+        return (d.imdbRating && d.imdbRating !== "N/A") ? d.imdbRating : "";
+      })
+      .catch(function() { return ""; });
+  }
+  return tryKey(0);
 }
 
 function getExternalIds(id) { return tmdbFetch("/movie/" + id + "/external_ids").catch(function() { return {}; }); }
@@ -595,18 +608,25 @@ function fetchBasicLists() {
     fetchPages("/discover/movie", { "release_date.gte": daysAgo(30), "release_date.lte": today(), sort_by: "popularity.desc", with_release_type: "3|2", region: "TW" }, 3),
     fetchPages("/discover/movie", { "release_date.gte": daysAgo(30), "release_date.lte": today(), sort_by: "popularity.desc", with_release_type: "2|3", "vote_count.gte": 20, watch_region: "TW", without_watch_providers: "8|119|350" }, 2, true),
     fetchPages("/discover/movie", { "release_date.gte": daysLater(1), "release_date.lte": daysLater(180), sort_by: "release_date.asc", with_release_type: "3|2" }, 3),
-    fetchPages("/discover/movie", { "release_date.gte": daysAgo(60), "release_date.lte": today(), sort_by: "popularity.desc", watch_region: "TW", with_watch_monetization_types: "flatrate", "vote_count.gte": 20 }, 2)
+    fetchPages("/discover/movie", { "release_date.gte": daysAgo(60), "release_date.lte": today(), sort_by: "popularity.desc", watch_region: "TW", with_watch_monetization_types: "flatrate", "vote_count.gte": 20 }, 2),
+    fetchPages("/discover/movie", { "primary_release_date.gte": daysLater(1), "primary_release_date.lte": daysLater(180), sort_by: "popularity.desc", with_release_type: "2|3" }, 2, true)
   ]).then(function(results) {
-    var npA = dedup(results[0]);
+    var cutoff30 = daysAgo(30);
+    var cutoff45 = daysAgo(45);
+    var npA = dedup(results[0]).filter(function(m) { return m.release_date >= cutoff30; });
     var npAIds = {};
     npA.forEach(function(m) { npAIds[m.id] = true; });
-    var npB = results[1].filter(function(m) { return !npAIds[m.id]; }).slice(0, 15);
+    var npB = results[1].filter(function(m) { return !npAIds[m.id] && m.release_date >= cutoff30; }).slice(0, 15);
     var np = dedup(npA.concat(npB)).slice(0, 45);
-    var cs = dedup(results[2]).slice(0, 40);
+    var csA = dedup(results[2]);
+    var csAIds = {};
+    csA.forEach(function(m) { csAIds[m.id] = true; });
+    var csB = results[4].filter(function(m) { return !csAIds[m.id] && m.release_date >= daysLater(1); }).slice(0, 15);
+    var cs = dedup(csA.concat(csB)).slice(0, 40);
     var tmdbStream = results[3];
     var npIds = {};
     np.forEach(function(m) { npIds[m.id] = true; });
-    var stTmdb = tmdbStream.filter(function(m) { return !npIds[m.id]; }).slice(0, 15);
+    var stTmdb = tmdbStream.filter(function(m) { return !npIds[m.id] && m.release_date >= cutoff45; }).slice(0, 15);
     return {
       now: np.map(buildBasicMovie),
       soon: cs.map(buildBasicMovie),
@@ -726,7 +746,8 @@ function cardHTML(m, showRatings, showPlatforms) {
     : '<div style="height:4px"></div>';
   var metaHTML = '<div class="card-meta"><span class="card-date">' + formatDate(m.releaseDate) + '</span>';
   if (showRatings) {
-    metaHTML += '<span class="badge-imdb" id="imdb-' + m.id + '" style="display:none">IMDb <span style="color:rgba(255,255,255,0.7)"></span></span>';
+    var imdbStyle = m.imdb ? '' : ' style="display:none"';
+    metaHTML += '<span class="badge-imdb" id="imdb-' + m.id + '"' + imdbStyle + '>IMDb <span style="color:rgba(255,255,255,0.7)">' + escHtml(m.imdb || '') + '</span></span>';
     if (m.voteAverage) metaHTML += '<span class="badge-tmdb">TMDB <span style="color:rgba(255,255,255,0.7)">' + tmdbScore(m.voteAverage) + '</span></span>';
   }
   metaHTML += '</div>';
