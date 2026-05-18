@@ -28,8 +28,6 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 .nav-right { display: flex; align-items: center; gap: 8px; }
 .nav-refresh-btn { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border: none; background: transparent; color: rgba(255,255,255,0.7); cursor: pointer; border-radius: 999px; transition: background 0.2s, color 0.2s; font-size: 14px; font-weight: 300; font-family: 'Manrope', sans-serif; }
 .nav-refresh-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
-.nav-refresh-btn .refresh-label { display: none; }
-@media(min-width:1024px){ .nav-refresh-btn .refresh-label { display: inline; } }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .spinning { animation: spin 1s linear infinite; display: inline-block; }
 
@@ -177,18 +175,37 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
   .filter-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
   .sort-wrap:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
   .sort-wrap:hover .sort-select { color: #fff; }
+  #mobile-search-toggle:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
 }
+/* Mobile: search/filter toggle button */
+#mobile-search-toggle { display: none; align-items: center; gap: 6px; padding: 6px 10px; background: transparent; border: none; font-size: 14px; color: rgba(255,255,255,0.6); cursor: pointer; border-radius: 8px; transition: background 0.2s, color 0.2s; font-family: 'Manrope', sans-serif; }
+#mobile-search-toggle.active { color: #fff; background: rgba(255,255,255,0.06); }
+/* Mobile: unified active filters bar (placeholder when panel open, summary when panel closed) */
+#mobile-active-bar { display: none; align-items: center; gap: 8px; padding: 5px 0; max-width: 100%; height: 32px; margin-bottom: 8px; }
+#mobile-active-bar.visible { display: flex; }
+#mobile-active-bar.panel-open { display: flex; }
+#mobile-active-bar-text { font-size: 12px; color: rgba(255,255,255,0.45); flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1; }
+@media(min-width:769px) { #mobile-active-bar { display: none !important; } }
+/* Mobile: search input inside filter panel */
+#mobile-search-wrap { display: none; position: relative; width: 100%; margin-bottom: 16px; }
+#mobile-search-wrap .tab-search { width: 100%; }
+#mobile-search-wrap { display: none; position: relative; width: 100%; margin-bottom: 16px; }
+#mobile-search-wrap .tab-search { width: 100%; }
 @media(max-width:768px){
   .nav-inner { padding: 14px 20px; }
   .tab-bar-inner { padding: 0 20px; }
   .content-area { padding: 28px 20px; }
   .modal-hero-info { padding: 16px 20px; }
   .modal-body { padding: 20px; }
-  .filter-left-group { width: 100%; }
-  .filter-right-group { width: 100%; }
-  .tab-search-wrap { flex: 1; min-width: 0; max-width: 50%; }
-  .tab-search { font-size: 14px; width: 100%; }
+  .filter-row { flex-wrap: nowrap; justify-content: space-between; padding: 10px 0; row-gap: 0; }
+  .filter-left-group { width: auto; flex: 0 0 auto; }
+  .filter-right-group { display: none; }
+  .tab-search-wrap { display: none; }
+  .tab-search { font-size: 14px; }
+  .sort-wrap { margin-left: 0; }
   .filter-desktop-divider { display: none; }
+  #mobile-search-toggle { display: flex; }
+  #mobile-search-wrap { display: block; }
 }
 @media(max-width:430px){
   .badge-imdb, .badge-tmdb { padding: 1px 2px; }
@@ -225,6 +242,9 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
       <span id="movie-count" style="margin-left:0px; color:#888; font-size:13px; align-self:center;"></span>
     </div>
     <div class="filter-row">
+      <button id="mobile-search-toggle" onclick="toggleFilter()">
+        <span class="material-symbols-outlined" style="font-size:18px">search</span>尋找
+      </button>
       <div class="filter-left-group">
         <div class="tab-search-wrap">
           <span class="material-symbols-outlined search-icon-abs" style="font-size:18px;color:rgba(255,255,255,0.4)">search</span>
@@ -256,7 +276,18 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
         </button>
       </div>
     </div>
+    <div id="mobile-active-bar">
+      <span id="mobile-active-bar-text"></span>
+      <button class="clear-active-btn" onclick="clearFilters()">
+        <span class="material-symbols-outlined" style="font-size:14px">close</span>
+      </button>
+    </div>
     <div id="filter-panel">
+      <div id="mobile-search-wrap" class="tab-search-wrap">
+        <span class="material-symbols-outlined search-icon-abs" style="font-size:18px;color:rgba(255,255,255,0.4)">search</span>
+        <input id="mobile-tab-search" class="tab-search" type="text" placeholder="搜尋電影..."/>
+        <button class="search-clear-btn" id="mobile-search-clear" onclick="clearMobileSearch()"><span class="material-symbols-outlined" style="font-size:18px">cancel</span></button>
+      </div>
       <div class="filter-groups">
         <div>
           <p class="filter-group-label">類型</p>
@@ -349,6 +380,7 @@ var currentTab = "now";
 var activeGenres = {};
 var activePlatforms = {};
 var searchDebounce = null;
+var mobilePanelOpen = false;
 var tabSortState = { now: "date_desc", soon: "date_asc", stream: "date_desc" };
 
 var genreMap = {
@@ -617,11 +649,11 @@ function motnToMovie(item) {
 function fetchBasicLists() {
   var motnPromise = fetchStreamingNew(); // 立刻開始，但不阻塞
   return Promise.all([
-    fetchPages("/discover/movie", { "release_date.gte": daysAgo(30), "release_date.lte": today(), sort_by: "popularity.desc", with_release_type: "3|2", region: "TW" }, 3),
-    fetchPages("/discover/movie", { "release_date.gte": daysAgo(30), "release_date.lte": today(), sort_by: "popularity.desc", with_release_type: "2|3", "vote_count.gte": 20, watch_region: "TW", without_watch_providers: "8|119|350" }, 2, true),
-    fetchPages("/discover/movie", { "release_date.gte": daysLater(1), "release_date.lte": daysLater(180), sort_by: "release_date.asc", with_release_type: "3|2" }, 3),
+    fetchPages("/discover/movie", { "release_date.gte": daysAgo(30), "release_date.lte": today(), sort_by: "popularity.desc", with_release_type: "3|2", region: "TW", watch_region: "TW", without_watch_providers: "8|9|118|119|337|350|384" }, 3),
+    fetchPages("/discover/movie", { "release_date.gte": daysAgo(30), "release_date.lte": today(), sort_by: "popularity.desc", with_release_type: "2|3", "vote_count.gte": 20, watch_region: "TW", without_watch_providers: "8|9|118|119|337|350|384" }, 2, true),
+    fetchPages("/discover/movie", { "release_date.gte": daysLater(1), "release_date.lte": daysLater(180), sort_by: "release_date.asc", with_release_type: "3|2", watch_region: "TW", without_watch_providers: "8|9|118|119|337|350|384" }, 3),
     fetchPages("/discover/movie", { "release_date.gte": daysAgo(60), "release_date.lte": today(), sort_by: "popularity.desc", watch_region: "TW", with_watch_monetization_types: "flatrate", "vote_count.gte": 20 }, 2),
-    fetchPages("/discover/movie", { "primary_release_date.gte": daysLater(1), "primary_release_date.lte": daysLater(180), sort_by: "popularity.desc", with_release_type: "2|3" }, 2, true)
+    fetchPages("/discover/movie", { "primary_release_date.gte": daysLater(1), "primary_release_date.lte": daysLater(180), sort_by: "popularity.desc", with_release_type: "2|3", watch_region: "TW", without_watch_providers: "8|9|118|119|337|350|384" }, 2, true)
   ]).then(function(results) {
     var cutoff30 = daysAgo(30);
     var cutoff45 = daysAgo(45);
@@ -692,6 +724,21 @@ function enrichBackground(rawData, skipNowFilter) {
       var countEl = document.getElementById("movie-count");
       if (countEl && currentTab === "now") countEl.textContent = filtered.now.length + " 部";
     }
+    var validSoonIds = {};
+    allMovies.soon = allMovies.soon.filter(function(m) {
+      var pass = (!m.platforms || m.platforms.length === 0) && (m.duration === 0 || m.duration >= 70);
+      if (pass) validSoonIds[m.id] = true;
+      return pass;
+    });
+    filtered.soon = filtered.soon.filter(function(m) { return validSoonIds[m.id]; });
+    document.querySelectorAll('#grid-soon .movie-card').forEach(function(el) {
+      if (!validSoonIds[el.id.replace('card-', '')]) {
+        el.style.transition = 'opacity 0.3s'; el.style.opacity = '0';
+        setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 300);
+      }
+    });
+    var soonCountEl = document.getElementById("movie-count");
+    if (soonCountEl && currentTab === "soon") soonCountEl.textContent = filtered.soon.length + " 部";
     buildGenreFilters(); buildPlatformFilters(); saveCache(allMovies);
     fetchImdbInBackground(allMovies.now); fetchImdbInBackground(allMovies.stream);
   }
@@ -857,6 +904,7 @@ function updateActiveFiltersBadge() {
     if (parts.length > 0) clearBtn.classList.add("visible");
     else clearBtn.classList.remove("visible");
   }
+  updateMobileActiveBar();
 }
 
 function sortMovies() {
@@ -905,6 +953,8 @@ function bindSearchInput(el) {
 
 function clearSearch() {
   document.getElementById("tab-search").value = "";
+  var ms = document.getElementById("mobile-tab-search");
+  if (ms) ms.value = "";
   runTabSearch("");
 }
 
@@ -934,15 +984,60 @@ function clearFilters() {
   activeGenres = {}; activePlatforms = {};
   document.getElementById("min-rating-select").value = "0";
   document.getElementById("tab-search").value = "";
+  var ms = document.getElementById("mobile-tab-search");
+  if (ms) { ms.value = ""; setClearBtn("mobile-search-clear", ""); }
   document.querySelectorAll(".filter-tag").forEach(function(btn) { btn.classList.remove("active"); });
   applyFilters();
 }
 function toggleFilter(btn) {
   var panel = document.getElementById("filter-panel");
   var sf = document.getElementById("stream-platform-filter");
-  panel.style.display = (panel.style.display === "block") ? "none" : "block";
-  sf.style.display = (currentTab === "stream" && panel.style.display === "block") ? "block" : "none";
-  if (btn) btn.blur();
+  var isOpen = panel.style.display === "block";
+  panel.style.display = isOpen ? "none" : "block";
+  sf.style.display = (currentTab === "stream" && !isOpen) ? "block" : "none";
+  if (window.innerWidth <= 768) {
+    mobilePanelOpen = !isOpen;
+    var toggle = document.getElementById("mobile-search-toggle");
+    if (toggle) toggle.classList.toggle("active", mobilePanelOpen);
+    updateMobileActiveBar();
+  } else {
+    if (btn) btn.blur();
+  }
+}
+function clearMobileSearch() {
+  document.getElementById("mobile-tab-search").value = "";
+  document.getElementById("tab-search").value = "";
+  setClearBtn("mobile-search-clear", "");
+  applyFilters();
+}
+function getMobileActiveParts() {
+  var parts = [];
+  var sv = document.getElementById("tab-search").value;
+  if (sv) parts.push(sv);
+  var genreKeys = Object.keys(activeGenres);
+  for (var i = 0; i < genreKeys.length; i++) parts.push(genreKeys[i]);
+  var platformKeys = Object.keys(activePlatforms);
+  for (var j = 0; j < platformKeys.length; j++) parts.push(platformKeys[j]);
+  var rating = parseFloat(document.getElementById("min-rating-select").value) || 0;
+  if (rating > 0) parts.push(rating + "分以上");
+  return parts;
+}
+function updateMobileActiveBar() {
+  var bar = document.getElementById("mobile-active-bar");
+  var barText = document.getElementById("mobile-active-bar-text");
+  if (!bar) return;
+  var parts = getMobileActiveParts();
+  if (barText) barText.textContent = parts.join(", ");
+  var clearBtn = bar.querySelector(".clear-active-btn");
+  if (clearBtn) clearBtn.style.display = parts.length > 0 ? "flex" : "none";
+  if (mobilePanelOpen) {
+    bar.classList.add("panel-open");
+    bar.classList.remove("visible");
+  } else {
+    bar.classList.remove("panel-open");
+    if (parts.length > 0) bar.classList.add("visible");
+    else bar.classList.remove("visible");
+  }
 }
 function switchTab(t) {
   currentTab = t;
@@ -1050,6 +1145,24 @@ document.addEventListener("keydown", function(e) { if (e.key === "Escape") { clo
 
 document.addEventListener("DOMContentLoaded", function() {
   bindSearchInput(document.getElementById("tab-search"));
+  var mSearch = document.getElementById("mobile-tab-search");
+  if (mSearch) {
+    var mComposing = false;
+    mSearch.addEventListener("compositionstart", function() { mComposing = true; });
+    mSearch.addEventListener("compositionend", function() {
+      mComposing = false;
+      document.getElementById("tab-search").value = mSearch.value;
+      setClearBtn("mobile-search-clear", mSearch.value);
+      applyFilters();
+    });
+    mSearch.addEventListener("input", function() {
+      if (mComposing) return;
+      document.getElementById("tab-search").value = mSearch.value;
+      setClearBtn("mobile-search-clear", mSearch.value);
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(function() { applyFilters(); }, 300);
+    });
+  }
 });
 
 function scrollToResults() {
