@@ -236,7 +236,7 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 <div id="tab-bar">
   <div class="tab-bar-inner">
     <div class="tabs">
-      <button class="tab-btn active" id="tab-now" onclick="switchTab('now')">現正熱映</button>
+      <button class="tab-btn" id="tab-now" onclick="switchTab('now')">現正熱映</button>
       <button class="tab-btn" id="tab-soon" onclick="switchTab('soon')">即將上映</button>
       <button class="tab-btn" id="tab-stream" onclick="switchTab('stream')">串流新上架</button>
       <span id="movie-count" style="margin-left:0px; color:#888; font-size:13px; align-self:center;"></span>
@@ -321,7 +321,7 @@ body { background: transparent; color: #fff; min-height: 100vh; font-weight: 300
 
 <div class="content-area">
   <div id="error-banner"></div>
-  <div class="tab-content active" id="content-now">
+  <div class="tab-content" id="content-now">
     <div class="movie-grid" id="grid-now"></div>
     <p class="empty-msg" id="empty-now">沒有符合條件的電影</p>
   </div>
@@ -376,7 +376,12 @@ var CACHE_TTL = 24 * 60 * 60 * 1000;
 
 var allMovies = { now: [], soon: [], stream: [] };
 var filtered = { now: [], soon: [], stream: [] };
-var currentTab = "now";
+var currentTab = (function() {
+  var h = window.location.hash.replace('#','');
+  if (h === 'soon' || h === 'stream') return h;
+  try { var v = localStorage.getItem("wt_active_tab"); if (v === 'soon' || v === 'stream') return v; } catch(e) {}
+  return "now";
+})();
 var activeGenres = {};
 var activePlatforms = {};
 var searchDebounce = null;
@@ -1041,6 +1046,8 @@ function updateMobileActiveBar() {
 }
 function switchTab(t) {
   currentTab = t;
+  try { localStorage.setItem("wt_active_tab", t); } catch(e) {}
+  try { history.replaceState(null, '', t === 'now' ? '#' : '#' + t); } catch(e) {}
   document.getElementById("sort-select").value = tabSortState[t];
   document.querySelectorAll(".tab-content").forEach(function(el) { el.classList.remove("active"); });
   document.querySelectorAll(".tab-btn").forEach(function(el) { el.classList.remove("active"); });
@@ -1254,6 +1261,7 @@ function loadData(forceRefresh) {
 
 function refreshData() { loadData(true); }
 loadData(false);
+switchTab(currentTab);
 
 // Floating orb physics
 (function() {
