@@ -649,18 +649,18 @@ function motnToMovie(item) {
 function fetchBasicLists() {
   var motnPromise = fetchStreamingNew(); // 立刻開始，但不阻塞
   return Promise.all([
-    fetchPages("/discover/movie", { "release_date.gte": daysAgo(30), "release_date.lte": today(), sort_by: "popularity.desc", with_release_type: "3|2", region: "TW", watch_region: "TW", without_watch_providers: "8|9|118|119|337|350|384" }, 3),
-    fetchPages("/discover/movie", { "release_date.gte": daysAgo(30), "release_date.lte": today(), sort_by: "popularity.desc", with_release_type: "2|3", "vote_count.gte": 20, watch_region: "TW", without_watch_providers: "8|9|118|119|337|350|384" }, 2, true),
+    fetchPages("/discover/movie", { "release_date.gte": daysAgo(45), "release_date.lte": today(), sort_by: "popularity.desc", with_release_type: "3|2", region: "TW", watch_region: "TW", without_watch_providers: "8|9|118|119|337|350|384" }, 3),
+    fetchPages("/discover/movie", { "release_date.gte": daysAgo(45), "release_date.lte": today(), sort_by: "popularity.desc", with_release_type: "2|3", "vote_count.gte": 20, watch_region: "TW", without_watch_providers: "8|9|118|119|337|350|384" }, 2, true),
     fetchPages("/discover/movie", { "release_date.gte": daysLater(1), "release_date.lte": daysLater(180), sort_by: "release_date.asc", with_release_type: "3|2", watch_region: "TW", without_watch_providers: "8|9|118|119|337|350|384" }, 3),
     fetchPages("/discover/movie", { "release_date.gte": daysAgo(60), "release_date.lte": today(), sort_by: "popularity.desc", watch_region: "TW", with_watch_monetization_types: "flatrate", "vote_count.gte": 20 }, 2),
     fetchPages("/discover/movie", { "primary_release_date.gte": daysLater(1), "primary_release_date.lte": daysLater(180), sort_by: "popularity.desc", with_release_type: "2|3", watch_region: "TW", without_watch_providers: "8|9|118|119|337|350|384" }, 2, true)
   ]).then(function(results) {
-    var cutoff30 = daysAgo(30);
     var cutoff45 = daysAgo(45);
-    var npA = dedup(results[0]).filter(function(m) { return m.release_date >= cutoff30; });
+    var cutoff60 = daysAgo(60);
+    var npA = dedup(results[0]).filter(function(m) { return m.release_date >= cutoff45; });
     var npAIds = {};
     npA.forEach(function(m) { npAIds[m.id] = true; });
-    var npB = results[1].filter(function(m) { return !npAIds[m.id] && m.release_date >= cutoff30; }).slice(0, 15);
+    var npB = results[1].filter(function(m) { return !npAIds[m.id] && m.release_date >= cutoff45; }).slice(0, 15);
     var np = dedup(npA.concat(npB)).slice(0, 45);
     var csA = dedup(results[2]);
     var csAIds = {};
@@ -670,7 +670,7 @@ function fetchBasicLists() {
     var tmdbStream = results[3];
     var npIds = {};
     np.forEach(function(m) { npIds[m.id] = true; });
-    var stTmdb = tmdbStream.filter(function(m) { return !npIds[m.id] && m.release_date >= cutoff45; }).slice(0, 15);
+    var stTmdb = tmdbStream.filter(function(m) { return !npIds[m.id] && m.release_date >= cutoff60; }).slice(0, 15);
     return {
       now: np.map(buildBasicMovie),
       soon: cs.map(buildBasicMovie),
